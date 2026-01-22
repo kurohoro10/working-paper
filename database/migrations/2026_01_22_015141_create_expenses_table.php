@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('amount', 12, 2);
             $table->text('client_comment')->nullable();
             $table->text('internal_comment')->nullable();
+            $table->string('receipt_path')->nullable();
             $table->timestamps();
         });
     }

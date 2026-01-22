@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ClientWorkingPaperController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WorkingPaperController;
 use App\Http\Controllers\WorkingPaperPdfController;
@@ -28,17 +29,25 @@ require __DIR__.'/auth.php';
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
-    // Download PDF
+    Route::get('/working-papers', [WorkingPaperController::class, 'index'])->name('working-papers.index');
+    Route::get('/working-papers/create', [WorkingPaperController::class, 'create'])->name('working-papers.create');
+    Route::post('/working-papers', [WorkingPaperController::class, 'store'])->name('working-papers.store');
+    Route::get('/working-papers/{workingPaper}', [WorkingPaperController::class, 'show'])->name('working-papers.show');
+
+    Route::post(
+        '/working-papers/{workingPaper}/finalise',
+        [WorkingPaperPdfController::class, 'finalise']
+    );
+
     Route::get(
         '/working-papers/{workingPaper}/pdf',
         [WorkingPaperPdfController::class, 'download']
-    )->name('working-papers.pdf');
+    );
 
-    // Finalised working paper
     Route::post(
-        '/working-papers/{workingPaper}/finalise',
-        [WorkingPaperController::class, 'finalise']
-    )->name('working-papers.finalise');
+        '/working-papers/{workingPaper}/expenses',
+        [ExpenseController::class, 'store']
+    )->name('expenses.store');
 });
 
 /*

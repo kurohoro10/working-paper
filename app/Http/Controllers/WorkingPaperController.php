@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\WorkingPaper;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -14,6 +15,55 @@ use Illuminate\Support\Facades\Storage;
  */
 class WorkingPaperController extends Controller
 {
+    /**
+     * Display a list of working papers (internal users).
+     */
+    public function index()
+    {
+        $workingPapers = WorkingPaper::latest()->paginate(10);
+
+        return view('working-papers.index', compact('workingPapers'));
+    }
+
+    /**
+     * Show create form.
+     */
+    public function create()
+    {
+        return view('working-papers.create');
+    }
+
+    /**
+     * Store a new working paper draft.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'client_name'   => 'required|string',
+            'service'       => 'required|string',
+            'job_reference' => 'required|string|unique:working_papers',
+            'period'        => 'required|string',
+        ]);
+
+        $workingPaper = WorkingPaper::create([
+            ...$validated,
+            'status' => 'draft',
+        ]);
+
+        return redirect()->route(
+            'working-papers.show',
+            $workingPaper
+        );
+    }
+
+    /**
+     * Display a single working paper.
+     */
+    public function show(WorkingPaper $workingPaper)
+    {
+        return view('working-papers.show', compact('workingPaper'));
+    }
+
     /**
      * Finalise a working paper.
      *

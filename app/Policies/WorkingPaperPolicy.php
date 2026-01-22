@@ -33,7 +33,7 @@ class WorkingPaperPolicy
      */
     public function finalise(User $user, WorkingPaper $workingPaper): bool
     {
-        return $workingPaper->status !== 'finalised';
+        return $workingPaper->status === 'draft';
     }
 
     /**

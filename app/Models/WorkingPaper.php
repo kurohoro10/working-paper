@@ -6,6 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class WorkingPaper extends Model
 {
+    protected $fillable = [
+        'client_name',
+        'service',
+        'job_reference',
+        'period',
+        'status',
+        'finalised_at',
+        'snapshot_pdf_path',
+    ];
+
     public function expenses()
     {
         return $this->hasMany(Expense::class);
@@ -13,6 +23,6 @@ class WorkingPaper extends Model
 
     public function auditLogs()
     {
-        return $this->morphMay(AuditLog::class, 'auditable');
+        return $this->hasMany(AuditLog::class);
     }
 }
