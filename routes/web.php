@@ -28,15 +28,17 @@ require __DIR__.'/auth.php';
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
+    // Download PDF
     Route::get(
         '/working-papers/{workingPaper}/pdf',
-        [WorkingPaperController::class, 'download']
+        [WorkingPaperPdfController::class, 'download']
     )->name('working-papers.pdf');
 
+    // Finalised working paper
     Route::post(
-        '/working-papers/{workingPaper}/export-odoo',
-        [WorkingPaperPdfController::class, 'exportToOdoo']
-    )->name('working-papers.export.odoo');
+        '/working-papers/{workingPaper}/finalise',
+        [WorkingPaperController::class, 'finalise']
+    )->name('working-papers.finalise');
 });
 
 /*

@@ -10,4 +10,9 @@ class WorkingPaper extends Model
     {
         return $this->hasMany(Expense::class);
     }
+
+    public function auditLogs()
+    {
+        return $this->morphMay(AuditLog::class, 'auditable');
+    }
 }
