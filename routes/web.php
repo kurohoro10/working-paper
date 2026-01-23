@@ -44,23 +44,17 @@ Route::middleware(['auth'])->group(function () {
         [WorkingPaperPdfController::class, 'download']
     );
 
-    Route::post(
-        '/working-papers/{workingPaper}/expenses',
-        [ExpenseController::class, 'store']
-    )->name('expenses.store');
-});
+    });
 
 /*
 |--------------------------------------------------------------------------
 | Expenses Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->group(function () {
-    Route::get(
-        '/expenses/{expense}/receipt',
-        [ExpenseController::class, 'viewReceipt']
-    )->name('expenses.receipt');
-});
+Route::get(
+    '/expenses/{expense}/receipt',
+    [ExpenseController::class, 'viewReceipt']
+)->name('expenses.receipt');
 
 /*
 |--------------------------------------------------------------------------
@@ -68,11 +62,11 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::get(
-    '/client/working-paper/{workingPaper}',
+    '/client/working-paper/{token}',
     [ClientWorkingPaperController::class, 'show']
-)->middleware('signed')->name('client.working-paper');
+)->name('client.working-paper.show');
 
 Route::post(
-    '/client/working-paper/{workingPaper}',
-    [ClientWorkingPaperController::class, 'store']
-)->middleware('signed')->name('client.working-paper.store');
+    '/client/working-paper/{workingPaper}/expenses',
+    [ExpenseController::class, 'store']
+)->name('expenses.store');

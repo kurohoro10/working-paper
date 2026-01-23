@@ -36,16 +36,13 @@ class ClientWorkingPaperController extends Controller
      * @param \App\Models\WorkingPaper $workingPaper
      * @return \Illuminate\View\View
      */
-    public function show(Request $request, WorkingPaper $workingPaper)
+    public function show(string $token)
     {
-        // Optional hard stop if paper is already finalised
-        if ($workingPaper->status === 'finalised') {
-            abort(403, 'This working paper is already finalised.');
-        }
+        $workingPaper = WorkingPaper::where('share_token', $token)
+            ->with('expenses')
+            ->firstOrfail();
 
-        return view('client.working-paper', [
-            'workingPaper' => $workingPaper,
-        ]);
+        return view('working-papers.show', compact('workingPaper'));
     }
 
     /**

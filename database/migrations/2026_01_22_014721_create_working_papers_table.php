@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('job_reference')->unique();
             $table->year('period');
             $table->enum('status', ['draft', 'sent', 'reviewed', 'finalised']);
+            $table->string('share_token')->unique()->nullable();
             $table->timestamps();
         });
     }

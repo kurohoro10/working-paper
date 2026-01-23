@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class WorkingPaper extends Model
 {
@@ -40,6 +41,7 @@ class WorkingPaper extends Model
             if (!$wp->job_reference) {
                 $wp->job_reference = self::generateJobReference();
             }
+            $wp->share_token = Str::uuid();
         });
     }
 
@@ -66,4 +68,6 @@ class WorkingPaper extends Model
 
         return $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
+
+
 }

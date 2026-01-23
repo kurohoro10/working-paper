@@ -32,7 +32,7 @@ class ExpenseController extends Controller
         }
 
         // Strip internal_comment if user is NOT an admin
-        if ($request->user()->cannot('addInternalComment', Expense::class)) {
+        if (!auth()->check() || auth()->user()->cannot('addInternalComment', Expense::class)) {
             unset($validated['internal_comment']);
         }
 
@@ -41,9 +41,18 @@ class ExpenseController extends Controller
         return back()->with('success', 'Expense added.');
     }
 
-    public function viewReceipt(Expense $expense)
+    public function viewReceipt(Request $request, Expense $expense)
     {
-        $this->authorize('view', $expense);
+        // If user is logged in
+        if (auth()->check()) {
+            $this->authorize('view', $expense);
+        } else {
+            $token = $request->query('token');
+
+            if (!$token || $token !== $expense->workingPaper->share_token) {
+                abort(403);
+            }
+        }
 
         return response()->file(
             storage_path('app/public/' . $expense->receipt_path)

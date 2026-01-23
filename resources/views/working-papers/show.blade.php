@@ -4,14 +4,41 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Working Paper Details') }}
             </h2>
-            <a href="{{ route('working-papers.index') }}" class="text-sm text-gray-600 hover:text-gray-900 underline">
-                &larr; Back to List
-            </a>
+            {{-- Hide back button for public link users --}}
+            @auth
+                <a href="{{ route('working-papers.index') }}" class="text-sm text-gray-600 hover:text-gray-900 underline">
+                    &larr; Back to List
+                </a>
+            @endauth
         </div>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+
+            {{-- Share link section: Only show to logged in owners --}}
+            @auth
+                <div class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded shadow-sm">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-sm text-blue-700 font-bold">Public Access Link</p>
+                            <p class="text-xs text-blue-600">Share this URL to clients to allow them to add expenses without logging in.</p>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <input type="text" name="shareUrl" id="shareUrl" readonly
+                                value="{{ route('client.working-paper.show', $workingPaper->share_token) }}"
+                                class="text-xs border-gray-300 rounded bg-white w-64">
+
+                            <button onclick="copyLink()"
+                                class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            @endauth
+
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-8">
 
@@ -51,6 +78,9 @@
                                             <th class="px-4 py-2 text-left">{{ __('Description') }}</th>
                                             <th class="px-4 py-2 text-right">{{ __('Amount') }}</th>
                                             <th class="px-4 py-2">{{ __('Client Comment') }}</th>
+                                            @auth
+                                                <th class="px-4 py-2">{{ __('Internal Comment') }}</th>
+                                            @endauth
                                             <th class="px-4 py-2">{{ __('Receipt') }}</th>
                                         </tr>
                                     </thead>
@@ -64,9 +94,14 @@
                                                 <td class="px-4 py-2">
                                                     {{ $expense->client_comment}}
                                                 </td>
+                                                @auth
+                                                    <td class="px-4 py-2">
+                                                        {{ $expense->internal_comment}}
+                                                    </td>
+                                                @endauth
                                                 <td class="px-4 py-2 text-center">
                                                     @if($expense->receipt_path)
-                                                        <a href="{{ route('expenses.receipt', $expense) }}"
+                                                        <a href="{{ route('expenses.receipt', ['expense' => $expense, 'token' => $workingPaper->share_token]) }}"
                                                             target="_blank"
                                                             class="text-blue-600 hover:underline"
                                                         >
@@ -88,6 +123,7 @@
                         @endif
                     </div>
 
+                    {{-- Add expense form: restricted by status --}}
                     @if($workingPaper->status !== 'finalised')
                         <div class="px-6 pb-8 border-t">
                             <h3 class="text-md font-semibold text-gray-900 mt-6 mb-4">
@@ -103,33 +139,22 @@
                                 @csrf
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input
-                                        type="text"
-                                        name="description"
-                                        class="rounded-md border-gray-300"
-                                        placeholder="Description"
-                                        required
-                                    >
+                                    <input type="text" name="description" class="rounded-md border-gray-300" placeholder="Description" required >
 
-                                    <input
-                                        type="number"
-                                        name="amount"
-                                        step="0.01"
-                                        class="rounded-md border-gray-300"
-                                        placeholder="Amount"
-                                        required
-                                    >
+                                    <input type="number" name="amount" step="0.01" class="rounded-md border-gray-300" placeholder="Amount" required >
                                 </div>
 
                                 <textarea name="client_comment" id="client_comment"
                                     class="w-full rounded-md border-gray-300"
                                     placeholder="Client comment"></textarea>
 
-                                @can('addInternalComment', App\Models\Expense::class)
-                                    <textarea name="internal_comment" id="internal_comment"
-                                    class="w-full rounded-md border-gray-300"
-                                    placeholder="Internal comment"></textarea>
-                                @endcan
+                                @auth
+                                    @can('addInternalComment', App\Models\Expense::class)
+                                        <textarea name="internal_comment" id="internal_comment"
+                                        class="w-full rounded-md border-gray-300"
+                                        placeholder="Internal comment"></textarea>
+                                    @endcan
+                                @endauth
 
                                 <input type="file" name="receipt" id="receipt">
 
@@ -142,8 +167,7 @@
                         </div>
                     @endif
 
-
-
+                    {{-- Footer Actions --}}
                     <div class="bg-gray-50 -m-8 mt-8 p-6 flex gap-4">
                         <a href="{{ url('/working-papers/'.$workingPaper->id.'/pdf') }}"
                            class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
@@ -153,18 +177,29 @@
                             Download PDF Snapshot
                         </a>
 
-                        @if($workingPaper->status !== 'finalised')
-                            <form action="{{ route('working-papers.finalise', $workingPaper) }}" method="POST">
-                                @csrf
-                                <button class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
-                                    Finalise Paper
-                                </button>
-                            </form>
-                        @endif
+                        @auth
+                            @if($workingPaper->status !== 'finalised')
+                                <form action="{{ route('working-papers.finalise', $workingPaper) }}" method="POST">
+                                    @csrf
+                                    <button class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
+                                        Finalise Paper
+                                    </button>
+                                </form>
+                            @endif
+                        @endauth
                     </div>
 
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        function copyLink() {
+            var copyText = document.getElementById("shareUrl");
+            copyText.select();
+            document.execCommand("copy");
+            alert("Link copied to clipboard!");
+        }
+    </script>
 </x-app-layout>
