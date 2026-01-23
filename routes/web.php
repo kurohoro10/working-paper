@@ -37,7 +37,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post(
         '/working-papers/{workingPaper}/finalise',
         [WorkingPaperPdfController::class, 'finalise']
-    );
+    )->name('working-papers.finalise');
 
     Route::get(
         '/working-papers/{workingPaper}/pdf',

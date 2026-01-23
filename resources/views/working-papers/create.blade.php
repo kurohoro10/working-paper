@@ -36,7 +36,8 @@
                         </label>
                         <input type="text" name="job_reference" id="job_reference"
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            placeholder="e.g. WP-2026-001" value="{{ old('job_reference') }}" required>
+                            value="{{ $jobReference }}" readonly>
+                            <small class="text-muted">This reference is auto-generated.</small>
                     </div>
 
                     <div>

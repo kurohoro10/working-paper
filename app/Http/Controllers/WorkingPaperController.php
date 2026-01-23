@@ -30,7 +30,10 @@ class WorkingPaperController extends Controller
      */
     public function create()
     {
-        return view('working-papers.create');
+        // Generate the reference using the static method from Model
+        $jobReference = WorkingPaper::generateJobReference();
+
+        return view('working-papers.create', compact('jobReference'));
     }
 
     /**
@@ -41,7 +44,6 @@ class WorkingPaperController extends Controller
         $validated = $request->validate([
             'client_name'   => 'required|string',
             'service'       => 'required|string',
-            'job_reference' => 'required|string|unique:working_papers',
             'period'        => 'required|string',
         ]);
 
@@ -83,6 +85,7 @@ class WorkingPaperController extends Controller
         $pdf = Pdf::loadView('pdf.working-paper'. [
             'workingPaper' => $workingPaper
         ]);
+        // $pdf = Pdf::loadHTML('<h1>PDF TEST OK</h1><p>This should show text.</p>');
 
         // Ensure directory exists
         Storage::makeDirectory('snapshots');

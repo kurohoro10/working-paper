@@ -15,6 +15,9 @@ class AuditLog extends Model
         'action',
         'metadata',
         'user_id',
+        'auditable_id',
+        'auditable_type',
+        'working_paper_id'
     ];
 
     protected $casts = [

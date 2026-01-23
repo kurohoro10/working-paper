@@ -151,14 +151,14 @@
                             Download PDF Snapshot
                         </a>
 
-                        {{-- @if($workingPaper->status !== 'finalised')
+                        @if($workingPaper->status !== 'finalised')
                             <form action="{{ route('working-papers.finalise', $workingPaper) }}" method="POST">
                                 @csrf
-                                <button class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                                <button class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
                                     Finalise Paper
                                 </button>
                             </form>
-                        @endif --}}
+                        @endif
                     </div>
 
                 </div>

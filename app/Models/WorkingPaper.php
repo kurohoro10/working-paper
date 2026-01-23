@@ -10,7 +10,6 @@ class WorkingPaper extends Model
         'user_id',
         'client_name',
         'service',
-        'job_reference',
         'period',
         'status',
         'finalised_at',
@@ -29,6 +28,42 @@ class WorkingPaper extends Model
 
     public function auditLogs()
     {
-        return $this->hasMany(AuditLog::class);
+        return $this->morphMany(AuditLog::class, 'auditable');
+    }
+
+    /**
+     * Boot method to auto-generate job_reference
+     */
+    protected static function booted()
+    {
+        static::creating(function ($wp) {
+            if (!$wp->job_reference) {
+                $wp->job_reference = self::generateJobReference();
+            }
+        });
+    }
+
+    /**
+     * Generate a unique job reference.
+     *
+     * Format: WP-YYYY-XXXX
+     */
+    public static function generateJobReference()
+    {
+        $year = date('Y');
+        $prefix = "WP-{$year}-";
+
+        $lastRecord = self::where('job_reference', 'LIKE', "{$prefix}%")
+            ->orderBy('job_reference', 'desc')
+            ->first();
+
+        if ($lastRecord) {
+            $lastNumber = (int) substr($lastRecord->job_reference, -4);
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        return $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 }
