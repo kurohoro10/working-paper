@@ -63,4 +63,12 @@ class ExpensePolicy
     {
         return false;
     }
+
+    /**
+     * Determin if the user can add internal comments.
+     */
+    public function addInternalComment(User $user): bool
+    {
+        return trim($user->role) === 'admin';
+    }
 }

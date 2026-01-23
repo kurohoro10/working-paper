@@ -125,9 +125,11 @@
                                     class="w-full rounded-md border-gray-300"
                                     placeholder="Client comment"></textarea>
 
-                                <textarea name="internal_comment" id="internal_comment"
+                                @can('addInternalComment', App\Models\Expense::class)
+                                    <textarea name="internal_comment" id="internal_comment"
                                     class="w-full rounded-md border-gray-300"
                                     placeholder="Internal comment"></textarea>
+                                @endcan
 
                                 <input type="file" name="receipt" id="receipt">
 

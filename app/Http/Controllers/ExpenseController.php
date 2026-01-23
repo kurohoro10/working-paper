@@ -31,6 +31,11 @@ class ExpenseController extends Controller
             $validated['receipt_path'] = $request->file('receipt')->store('receipts', 'public');
         }
 
+        // Strip internal_comment if user is NOT an admin
+        if ($request->user()->cannot('addInternalComment', Expense::class)) {
+            unset($validated['internal_comment']);
+        }
+
         $workingPaper->expenses()->create($validated);
 
         return back()->with('success', 'Expense added.');
