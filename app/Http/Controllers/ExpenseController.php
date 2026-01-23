@@ -17,6 +17,11 @@ class ExpenseController extends Controller
      */
     public function store(Request $request, WorkingPaper $workingPaper)
     {
+        // Check if the status is finalised
+        if ($workingPaper->status === 'finalised') {
+            return back()->with('error', 'This paper is finalised and cannot be edited.');
+        }
+
         $validated = $request->validate([
             'description'      => 'required|string',
             'amount'           => 'required|numeric|min:0',

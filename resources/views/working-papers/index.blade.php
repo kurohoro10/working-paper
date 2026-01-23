@@ -20,28 +20,26 @@
         <table class="w-full border">
             <thead>
                 <tr class="bg-gray-100">
-                    <th class="p-2">Job Ref</th>
-                    <th class="p-2">Status</th>
-                    <th class="p-2">Actions</th>
+                    <th class="p-2 text-left">Job Ref</th>
+                    <th class="p-2 text-left">Status</th>
+                    <th class="p-2 text-left">Actions</th>
                 </tr>
             </thead>
 
             <tbody>
                 @foreach($workingPapers as $wp)
                     <tr class="border-t">
-                        <td class="p-3" style="text-align: center">
-                            <a href="{{ route('working-papers.show', $wp) }}" class="text-blue-600 hover:text-blue-800 font-medium">
-                                {{ $wp->job_reference }} - {{ $wp->client_name }}
-                            </a>
+                        <td class="p-3">
+                            {{ $wp->job_reference }} - {{ $wp->client_name }}
                         </td>
 
-                        <td class="text-center p-3" style="text-align: center">
+                        <td class="p-3">
                             <span class="text-sm">
                                 {{ ucfirst($wp->status) }}
                             </span>
                         </td>
 
-                        <td class="text-center p-3" style="text-align: center">
+                        <td class="p-3">
                             <a href="{{ route('working-papers.show', $wp) }}"
                             class="inline-flex items-center text-sm font-semibold text-indigo-600 hover:text-indigo-900">
                                 View Details

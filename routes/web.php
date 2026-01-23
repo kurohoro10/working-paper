@@ -38,13 +38,17 @@ Route::middleware(['auth'])->group(function () {
         '/working-papers/{workingPaper}/finalise',
         [WorkingPaperPdfController::class, 'finalise']
     )->name('working-papers.finalise');
+});
 
-    Route::get(
-        '/working-papers/{workingPaper}/pdf',
-        [WorkingPaperPdfController::class, 'download']
-    );
-
-    });
+/*
+|--------------------------------------------------------------------------
+| Expenses Routes
+|--------------------------------------------------------------------------
+*/
+Route::get(
+    '/working-papers/{workingPaper}/pdf',
+    [WorkingPaperPdfController::class, 'download']
+);
 
 /*
 |--------------------------------------------------------------------------
