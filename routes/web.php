@@ -52,6 +52,18 @@ Route::middleware(['auth'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| Expenses Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->group(function () {
+    Route::get(
+        '/expenses/{expense}/receipt',
+        [ExpenseController::class, 'viewReceipt']
+    )->name('expenses.receipt');
+});
+
+/*
+|--------------------------------------------------------------------------
 | Client Access (Signed URLs)
 |--------------------------------------------------------------------------
 */

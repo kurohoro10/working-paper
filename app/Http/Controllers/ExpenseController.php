@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Expense;
 use Illuminate\Http\Request;
 use App\Models\WorkingPaper;
 use Illuminate\Support\Facades\Storage;
@@ -24,12 +25,23 @@ class ExpenseController extends Controller
             'receipt'          => 'nullable|file|mimes:pdf,jpg,jpeg,png',
         ]);
 
+        // Handle the file upload
         if ($request->hasFile('receipt')) {
-            $validated['receipt_path'] = $request->fil('receipt')->store('receipts');
+            // Store the file and add the resulting path to the $validated array
+            $validated['receipt_path'] = $request->file('receipt')->store('receipts', 'public');
         }
 
         $workingPaper->expenses()->create($validated);
 
         return back()->with('success', 'Expense added.');
+    }
+
+    public function viewReceipt(Expense $expense)
+    {
+        $this->authorize('view', $expense);
+
+        return response()->file(
+            storage_path('app/public/' . $expense->receipt_path)
+        );
     }
 }

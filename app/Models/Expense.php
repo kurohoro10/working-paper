@@ -25,5 +25,4 @@ class Expense extends Model implements HasMedia
     {
         return $this->belongsTo(WorkingPaper::class);
     }
-
 }

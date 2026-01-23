@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('working_papers', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('client_name');
             $table->string('service');
             $table->string('job_reference')->unique();

@@ -47,7 +47,8 @@ class WorkingPaperController extends Controller
 
         $workingPaper = WorkingPaper::create([
             ...$validated,
-            'status' => 'draft',
+            'user_id' => auth()->id(),
+            'status'  => 'draft',
         ]);
 
         return redirect()->route(
