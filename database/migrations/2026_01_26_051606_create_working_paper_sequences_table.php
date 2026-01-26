@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('audit_logs', function (Blueprint $table) {
+        Schema::create('working_paper_sequences', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cacadeOnDelete();
-            $table->morphs('auditable');
-            $table->string('action');
-            $table->json('meta')->nullable();
+            $table->year('year')->unique();
+            $table->unsignedInteger('last_number')->default(0);
             $table->timestamps();
         });
     }
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('audit_logs');
+        Schema::dropIfExists('working_paper_sequences');
     }
 };

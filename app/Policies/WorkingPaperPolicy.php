@@ -33,7 +33,7 @@ class WorkingPaperPolicy
      */
     public function finalise(User $user, WorkingPaper $workingPaper): bool
     {
-        return $workingPaper->status === 'draft';
+        return $user->role === 'admin' && $workingPaper->status === 'draft';
     }
 
     /**

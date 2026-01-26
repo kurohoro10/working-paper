@@ -13,17 +13,27 @@ class AuditLog extends Model
 {
     protected $fillable = [
         'action',
-        'metadata',
+        'meta',
         'user_id',
         'auditable_id',
         'auditable_type',
-        'working_paper_id'
     ];
 
     protected $casts = [
-        'metadata' => 'array',
+        'meta' => 'array',
     ];
 
+    /**
+     * User who performed the action.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Polymorphic target of the audit log.
+     */
     public function auditable()
     {
         return $this->morphTo();

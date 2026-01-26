@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use App\Models\WorkingPaperSequence;
 
 class WorkingPaper extends Model
 {
@@ -14,6 +16,7 @@ class WorkingPaper extends Model
         'user_id',
         'client_name',
         'service',
+        'job_reference',
         'period',
         'status',
         'finalised_at',
@@ -53,20 +56,24 @@ class WorkingPaper extends Model
      *
      * Format: WP-YYYY-XXXX
      */
-    public static function generateJobReference()
+    public static function generateJobReference(): string
     {
-        $year = date('Y');
-        $prefix = "WP-{$year}-";
+        $year = now()->year;
 
-        $lastRecord = self::withTrashed()
-            ->where('job_reference', 'LIKE', "{$prefix}%")
-            ->orderBy('job_reference', 'desc')
-            ->first();
+        return DB::transaction(function () use ($year) {
+            $sequence = WorkingPaperSequence::lockForUpdate()
+                ->FirstOrCreate(
+                    ['year'        => $year],
+                    ['last_number' => 0]
+                );
 
-        $nextNumber = $lastRecord ? ((int) substr($lastRecord->job_reference, -4)) + 1 : 1;
+            $sequence->increment('last_number');
 
-        return $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+            return sprintf(
+                'WP-%d-%04d',
+                $year,
+                $sequence->last_number
+            );
+        });
     }
-
-
 }

@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ClientWorkingPaperController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WorkingPaperController;
 use App\Http\Controllers\WorkingPaperPdfController;
 use Illuminate\Support\Facades\Route;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -36,7 +38,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post(
         '/working-papers/{workingPaper}/finalise',
-        [WorkingPaperPdfController::class, 'finalise']
+        [WorkingPaperController::class, 'finalise']
     )->name('working-papers.finalise');
 
     Route::resource('working-papers', WorkingPaperController::class)->except(['edit', 'update']);
@@ -76,3 +78,5 @@ Route::post(
     '/client/working-paper/{workingPaper}/expenses',
     [ExpenseController::class, 'store']
 )->name('expenses.store');
+
+Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])->middleware(['auth', 'can:viewAuditLogs']);

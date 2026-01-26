@@ -6,6 +6,7 @@ use App\Models\WorkingPaper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\AuditLog;
 
 /**
  * Class WorkingPaperController
@@ -30,10 +31,7 @@ class WorkingPaperController extends Controller
      */
     public function create()
     {
-        // Generate the reference using the static method from Model
-        $jobReference = WorkingPaper::generateJobReference();
-
-        return view('working-papers.create', compact('jobReference'));
+        return view('working-papers.create');
     }
 
     /**
@@ -64,7 +62,12 @@ class WorkingPaperController extends Controller
      */
     public function show(WorkingPaper $workingPaper)
     {
-        return view('working-papers.show', compact('workingPaper'));
+        $auditLogs = $workingPaper->auditLogs()
+            ->with('user')
+            ->latest()
+            ->get();
+
+        return view('working-papers.show', compact('workingPaper', 'auditLogs'));
     }
 
     /**
@@ -82,16 +85,13 @@ class WorkingPaperController extends Controller
         $this->authorize('finalise', $workingPaper);
 
         // Generate PDF snapshot
-        $pdf = Pdf::loadView('pdf.working-paper'. [
+        $pdf = Pdf::loadView('pdf.working-paper', [
             'workingPaper' => $workingPaper
         ]);
-        // $pdf = Pdf::loadHTML('<h1>PDF TEST OK</h1><p>This should show text.</p>');
 
         // Ensure directory exists
         Storage::makeDirectory('snapshots');
-
         $path = 'snapshots/working-paper-' . $workingPaper->id . '.pdf';
-
         Storage::put($path, $pdf->output());
 
         // Update working paper state
@@ -101,14 +101,21 @@ class WorkingPaperController extends Controller
             'snapshot_pdf_path' => $path,
         ]);
 
+        // $workingPaper->refresh();
+
         // Audit log
         $workingPaper->auditLogs()->create([
             'action'  => 'finalised',
             'user_id' => auth()->id(),
+            'meta'    => [
+                'job_reference' => $workingPaper->job_reference ?? 'N/A',
+                'client_name'   => $workingPaper->client_name ?? 'N/A',
+            ],
         ]);
 
         return back()->with('success', 'Working paper finalised.');
     }
+
     /**
      * Delete a working paper (Admin only).
      */
@@ -119,6 +126,16 @@ class WorkingPaperController extends Controller
         if ($workingPaper->status === 'finalised') {
             abort(403, 'Finalised working papers cannot be deleted.');
         }
+
+        // Log BEFORE delete (important for polymorphic  relations)
+        $workingPaper->auditLogs()->create([
+            'action'  => 'deleted',
+            'user_id' => auth()->id(),
+            'meta'    => [
+                'job_reference' => $workingPaper->job_reference,
+                'client_name'   => $workingPaper->client_name,
+            ],
+        ]);
 
         // Optional: delete snapshot PDF if exists
         if ($workingPaper->snapshot_pdf_path) {

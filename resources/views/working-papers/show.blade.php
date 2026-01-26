@@ -236,6 +236,35 @@
         </div>
     </div>
 
+    @if($auditLogs->isNotEmpty())
+        <div class="mt-10">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                Audit Trail
+            </h3>
+
+            <div class="border rounded-md divide-y">
+                @foreach($auditLogs as $log)
+                    <div class="p-4 text-sm">
+                        <div class="font-medium">
+                            {{ ucfirst($log->action) }}
+                        </div>
+
+                        <div class="text-gray-600">
+                            By {{ $log->user->name ?? 'System' }}
+                            on {{ $log->created_at->format('Y-m-d H:i') }}
+                        </div>
+
+                        @if($log->meta)
+                            <pre class="mt-2 text-xs bg-gray-50 p-2 rounded">
+                                {{ json_encode($log->meta, JSON_PRETTY_PRINT) }}
+                            </pre>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     <script>
         function copyLink() {
             var copyText = document.getElementById("shareUrl");

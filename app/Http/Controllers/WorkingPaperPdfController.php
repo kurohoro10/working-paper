@@ -71,29 +71,29 @@ class WorkingPaperPdfController extends Controller
      * - Lock record
      * - Write audit log
      */
-    public function finalise(WorkingPaper $workingPaper)
-    {
-        $this->authorize('finalise', $workingPaper);
+    // public function finalise(WorkingPaper $workingPaper)
+    // {
+    //     $this->authorize('finalise', $workingPaper);
 
-        $pdf = Pdf::loadView('pdf.working-paper', [
-            'workingPaper' => $workingPaper
-        ]);
+    //     $pdf = Pdf::loadView('pdf.working-paper', [
+    //         'workingPaper' => $workingPaper
+    //     ]);
 
-        $path = 'snapshots/working-paper-' . $workingPaper->id . '.pdf';
+    //     $path = 'snapshots/working-paper-' . $workingPaper->id . '.pdf';
 
-        Storage::put($path, $pdf->output());
+    //     Storage::put($path, $pdf->output());
 
-        $workingPaper->update([
-            'status' => 'finalised',
-            'finalised_at' => now(),
-            'snapshot_pdf_path' => $path,
-        ]);
+    //     $workingPaper->update([
+    //         'status' => 'finalised',
+    //         'finalised_at' => now(),
+    //         'snapshot_pdf_path' => $path,
+    //     ]);
 
-        $workingPaper->auditLogs()->create([
-            'action' => 'finalised',
-            'user_id' => auth()->id(),
-        ]);
+    //     $workingPaper->auditLogs()->create([
+    //         'action' => 'finalised',
+    //         'user_id' => auth()->id(),
+    //     ]);
 
-        return back()->with('success', 'Working paper finalised.');
-    }
+    //     return back()->with('success', 'Working paper finalised.');
+    // }
 }
