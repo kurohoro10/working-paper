@@ -116,6 +116,10 @@ class WorkingPaperController extends Controller
     {
         $this->authorize('delete', $workingPaper);
 
+        if ($workingPaper->status === 'finalised') {
+            abort(403, 'Finalised working papers cannot be deleted.');
+        }
+
         // Optional: delete snapshot PDF if exists
         if ($workingPaper->snapshot_pdf_path) {
             Storage::delete($workingPaper->snapshot_pdf_path);

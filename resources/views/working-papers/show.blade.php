@@ -5,11 +5,29 @@
                 {{ __('Working Paper Details') }}
             </h2>
             {{-- Hide back button for public link users --}}
-            @auth
-                <a href="{{ route('working-papers.index') }}" class="text-sm text-gray-600 hover:text-gray-900 underline">
-                    &larr; Back to List
-                </a>
-            @endauth
+            <div class="flex gap-3 p-3 justify-center align-center">
+                @auth
+                    @can('delete', $workingPaper)
+                        @if($workingPaper->status !== 'finalised')
+                            <form method="POST"
+                                action="{{ route('working-papers.destroy', $workingPaper) }}"
+                                onsubmit="return confirm('This action cannot be undone. Delete this working paper?');">
+                                @csrf
+                                @method('DELETE')
+
+                                <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 bg-red-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    Delete
+                                </button>
+                            </form>
+                        @endif
+                    @endcan
+
+                    <a href="{{ route('working-papers.index') }}" class="flex justify-center items-center text-sm text-gray-600 hover:text-gray-900 underline">
+                        &larr; Back to List
+                    </a>
+                @endauth
+            </div>
         </div>
     </x-slot>
 

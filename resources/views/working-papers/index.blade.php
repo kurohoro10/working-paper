@@ -46,17 +46,19 @@
                             </a>
 
                             @can('delete', $wp)
-                                <form method="POST"
-                                    action="{{ route('working-papers.destroy', $wp) }}"
-                                    onsubmit="return confirm('This action cannot be undone. Delete this working paper?');">
-                                    @csrf
-                                    @method('DELETE')
+                                @if($wp->status !== 'finalised')
+                                    <form method="POST"
+                                        action="{{ route('working-papers.destroy', $wp) }}"
+                                        onsubmit="return confirm('This action cannot be undone. Delete this working paper?');">
+                                        @csrf
+                                        @method('DELETE')
 
-                                    <button type="submit"
-                                        class="text-sm font-semibold text-red-600 hover:text-red-800">
-                                        Delete
-                                    </button>
-                                </form>
+                                        <button type="submit"
+                                            class="text-sm font-semibold text-red-600 hover:text-red-800">
+                                            Delete
+                                        </button>
+                                    </form>
+                                @endif
                             @endcan
                         </td>
                     </tr>

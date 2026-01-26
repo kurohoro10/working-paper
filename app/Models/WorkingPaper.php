@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class WorkingPaper extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'user_id',
         'client_name',
@@ -55,16 +58,12 @@ class WorkingPaper extends Model
         $year = date('Y');
         $prefix = "WP-{$year}-";
 
-        $lastRecord = self::where('job_reference', 'LIKE', "{$prefix}%")
+        $lastRecord = self::withTrashed()
+            ->where('job_reference', 'LIKE', "{$prefix}%")
             ->orderBy('job_reference', 'desc')
             ->first();
 
-        if ($lastRecord) {
-            $lastNumber = (int) substr($lastRecord->job_reference, -4);
-            $nextNumber = $lastNumber + 1;
-        } else {
-            $nextNumber = 1;
-        }
+        $nextNumber = $lastRecord ? ((int) substr($lastRecord->job_reference, -4)) + 1 : 1;
 
         return $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }

@@ -49,6 +49,6 @@ class WorkingPaperPolicy
      */
     public function delete(User $user, WorkingPaper $workingPaper): bool
     {
-        return $user->role === 'admin';
+        return $user->role === 'admin' && $workingPaper->status !== 'finalised';
     }
 }
