@@ -109,4 +109,22 @@ class WorkingPaperController extends Controller
 
         return back()->with('success', 'Working paper finalised.');
     }
+    /**
+     * Delete a working paper (Admin only).
+     */
+    public function destroy(WorkingPaper $workingPaper)
+    {
+        $this->authorize('delete', $workingPaper);
+
+        // Optional: delete snapshot PDF if exists
+        if ($workingPaper->snapshot_pdf_path) {
+            Storage::delete($workingPaper->snapshot_pdf_path);
+        }
+
+        $workingPaper->delete();
+
+        return redirect()
+            ->route('working-papers.index')
+            ->with('success', 'Working paper deleted successfully.');
+    }
 }

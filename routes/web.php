@@ -38,6 +38,8 @@ Route::middleware(['auth'])->group(function () {
         '/working-papers/{workingPaper}/finalise',
         [WorkingPaperPdfController::class, 'finalise']
     )->name('working-papers.finalise');
+
+    Route::resource('working-papers', WorkingPaperController::class)->except(['edit', 'update']);
 });
 
 /*

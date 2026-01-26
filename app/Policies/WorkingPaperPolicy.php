@@ -43,4 +43,12 @@ class WorkingPaperPolicy
     {
         return true;
     }
+
+    /**
+     * Allow delete only for admin users.
+     */
+    public function delete(User $user, WorkingPaper $workingPaper): bool
+    {
+        return $user->role === 'admin';
+    }
 }

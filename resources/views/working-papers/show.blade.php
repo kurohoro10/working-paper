@@ -101,11 +101,11 @@
                                         <tr>
                                             <th class="px-4 py-2 text-left">{{ __('Description') }}</th>
                                             <th class="px-4 py-2 text-right">{{ __('Amount') }}</th>
-                                            <th class="px-4 py-2">{{ __('Client Comment') }}</th>
+                                            <th class="px-4 py-2  text-left">{{ __('Client Comment') }}</th>
                                             @auth
-                                                <th class="px-4 py-2">{{ __('Internal Comment') }}</th>
+                                                <th class="px-4 py-2  text-left">{{ __('Internal Comment') }}</th>
                                             @endauth
-                                            <th class="px-4 py-2">{{ __('Receipt') }}</th>
+                                            <th class="px-4 py-2  text-left">{{ __('Receipt') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
