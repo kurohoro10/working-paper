@@ -13,35 +13,33 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+Route::middleware('auth', 'verified')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', function () { return view('dashboard'); })->name('dashboard');
 
-require __DIR__.'/auth.php';
+    // User profile
+    Route::controller(ProfileController::class)->group(function () {
+        Route::get('/profile', 'edit')->name('profile.edit');
+        Route::patch('/profile', 'update')->name('profile.update');
+        Route::delete('/profile', 'destroy')->name('profile.destroy');
+    });
 
-/*
-|--------------------------------------------------------------------------
-| Authenticated Internal Routes
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth'])->group(function () {
-    Route::get('/working-papers', [WorkingPaperController::class, 'index'])->name('working-papers.index');
-    Route::get('/working-papers/create', [WorkingPaperController::class, 'create'])->name('working-papers.create');
-    Route::post('/working-papers', [WorkingPaperController::class, 'store'])->name('working-papers.store');
-    Route::get('/working-papers/{workingPaper}', [WorkingPaperController::class, 'show'])->name('working-papers.show');
+    // Internal working papers
+    Route::controller(WorkingPaperController::class)->group(function () {
+        // Route::get('/working-papers', 'index')->name('working-papers.index');
+        // Route::get('/working-papers/create', 'create')->name('working-papers.create');
+        // Route::post('/working-papers', 'store')->name('working-papers.store');
+        // Route::get('/working-papers/{workingPaper}', 'show')->name('working-papers.show');
 
-    Route::post(
-        '/working-papers/{workingPaper}/finalise',
-        [WorkingPaperController::class, 'finalise']
-    )->name('working-papers.finalise');
+        Route::post('/working-papers/{workingPaper}/finalise', 'finalise')->name('working-papers.finalise');
 
-    Route::resource('working-papers', WorkingPaperController::class)->except(['edit', 'update']);
+        // Handle all standard CRUD except edit/update
+        Route::resource('working-papers', WorkingPaperController::class)->except(['edit', 'update']);
+    });
+
+    // Audit logs
+    Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])->middleware('can:viewAuditLogs');
 });
 
 /*
@@ -49,34 +47,25 @@ Route::middleware(['auth'])->group(function () {
 | Expenses Routes
 |--------------------------------------------------------------------------
 */
-Route::get(
-    '/working-papers/{workingPaper}/pdf',
-    [WorkingPaperPdfController::class, 'download']
-);
+Route::controller(ExpenseController::class)->group(function () {
 
-/*
-|--------------------------------------------------------------------------
-| Expenses Routes
-|--------------------------------------------------------------------------
-*/
-Route::get(
-    '/expenses/{expense}/receipt',
-    [ExpenseController::class, 'viewReceipt']
-)->name('expenses.receipt');
+    Route::get('/expenses/{expense}/receipt', 'viewReceipt')->name('expenses.receipt');
+
+    Route::post('/client/working-paper/{workingPaper}/expenses', 'store')->name('expenses.store');
+});
 
 /*
 |--------------------------------------------------------------------------
 | Client Access (Signed URLs)
 |--------------------------------------------------------------------------
 */
-Route::get(
-    '/client/working-paper/{token}',
-    [ClientWorkingPaperController::class, 'show']
-)->name('client.working-paper.show');
+Route::get('/client/working-paper/{token}', [ClientWorkingPaperController::class, 'show'])->name('client.working-paper.show');
 
-Route::post(
-    '/client/working-paper/{workingPaper}/expenses',
-    [ExpenseController::class, 'store']
-)->name('expenses.store');
+/*
+|--------------------------------------------------------------------------
+| PDF Controller
+|--------------------------------------------------------------------------
+*/
+Route::get('/working-papers/{workingPaper}/pdf', [WorkingPaperPdfController::class, 'download']);
 
-Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])->middleware(['auth', 'can:viewAuditLogs']);
+require __DIR__.'/auth.php';

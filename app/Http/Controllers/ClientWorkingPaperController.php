@@ -1,42 +1,42 @@
 <?php
+/**
+ * ClientWorkingPaperController
+ *
+ * This controller handles the guest user's input and output using share token
+ *
+ * @category  Controllers
+ * @package   App\Http\Controllers
+ * @author    Name <email@email.com>
+ * @copyright 2026 Name
+ * @license   https://opensource.org/licenses/MIT MIT License
+ * @version   GIT: 1.2.0
+ * @link      http://url.com
+ */
 
 namespace App\Http\Controllers;
 
 use App\Models\WorkingPaper;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 /**
-     * Class ClientWorkingPaperController
-     *
-     * Handles client-facing access to EndureGo Internal Working Papers
-     * via signed URLs. Clients can view and submit expense information
-     * but cannot access internal-only data.
-     *
-     * Security:
-     * - Access is restricted to signed URLs
-     * - No authentication required
-     * - Internal comments are hidden
-     *
-     * @package App\Http\Controllers
-     */
+ * Class ClientWorkingPaperController
+ *
+ * Handles client-facing access to internal working papers via unique tokens.
+ * This controller manages the public/guest interaction layer where clients
+ * can review their specific data and upload expense details.
+ */
 class ClientWorkingPaperController extends Controller
 {
     /**
-     * Display the working paper for a client via signed URL.
+     * Display the working paper for a client using a unique share token.
      *
-     * This method allows a client to:
-     * - View client & job details
-     * - Enter expenses
-     * - Upload supporting documents
-     * - Add client comments
-     *
-     * Internal-only fields are excluded.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param \App\Models\WorkingPaper $workingPaper
+     * @param string $token The unique hash/token used to identify the working paper.
      * @return \Illuminate\View\View
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
-    public function show(string $token)
+    public function show(string $token): View
     {
         $workingPaper = WorkingPaper::where('share_token', $token)
             ->with('expenses')
@@ -46,21 +46,16 @@ class ClientWorkingPaperController extends Controller
     }
 
     /**
-     * Store or update client-submitted expense information.
+     * Bulk store or update client-submitted expense information.
      *
-     * Clients can only modify:
-     * - Expense description
-     * - Amount
-     *  -Client comments
-     * - Upload supporting documents
-     *
-     * Internal comments are protected.
+     * Processes a collection of expense data, handles file uploads for receipts,
+     * and ensure that internal-only fields remain untouched.
      *
      * @param \Illuminate\Http\Request $request
      * @param \App\Models\WorkingPaper $workingPaper
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request, WorkingPaper $workingPaper)
+    public function store(Request $request, WorkingPaper $workingPaper): RedirectResponse
     {
         $validated = $request->validate([
             'expenses.*.id'             => ['nullable', 'integer', 'exists:expenses,id'],

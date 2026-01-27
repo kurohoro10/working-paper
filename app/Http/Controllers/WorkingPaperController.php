@@ -1,4 +1,17 @@
 <?php
+/**
+ * WorkingPaperController
+ *
+ * This controller handles the CRUD operations for working paper.
+ *
+ * @category  Controllers
+ * @package   App\Http\Controllers
+ * @author    Name <email@email.com>
+ * @copyright 2026 Name
+ * @license   https://opensource.org/licenses/MIT MIT License
+ * @version   GIT: 1.2.0
+ * @link      http://url.com
+ */
 
 namespace App\Http\Controllers;
 
@@ -7,6 +20,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\AuditLog;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 /**
  * Class WorkingPaperController
@@ -18,8 +33,10 @@ class WorkingPaperController extends Controller
 {
     /**
      * Display a list of working papers (internal users).
+     *
+     * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(): View
     {
         $workingPapers = WorkingPaper::latest()->paginate(10);
 
@@ -28,16 +45,21 @@ class WorkingPaperController extends Controller
 
     /**
      * Show create form.
+     *
+     * @return \Illuminate\View\View
      */
-    public function create()
+    public function create(): View
     {
         return view('working-papers.create');
     }
 
     /**
      * Store a new working paper draft.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'client_name'   => 'required|string',
@@ -59,8 +81,11 @@ class WorkingPaperController extends Controller
 
     /**
      * Display a single working paper.
+     *
+     * @param \App\Models\WorkingPaper $workingPaper
+     * @return \Illuminate\View\View
      */
-    public function show(WorkingPaper $workingPaper)
+    public function show(WorkingPaper $workingPaper): View
     {
         $auditLogs = $workingPaper->auditLogs()
             ->with('user')
@@ -80,7 +105,7 @@ class WorkingPaperController extends Controller
      * @param \App\Models\WorkingPaper $workingPaper
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function finalise(WorkingPaper $workingPaper)
+    public function finalise(WorkingPaper $workingPaper):RedirectResponse
     {
         $this->authorize('finalise', $workingPaper);
 
@@ -118,8 +143,11 @@ class WorkingPaperController extends Controller
 
     /**
      * Delete a working paper (Admin only).
+     *
+     * @param \App\Models\WorkingPaper $workingPaper
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy(WorkingPaper $workingPaper)
+    public function destroy(WorkingPaper $workingPaper): RedirectResponse
     {
         $this->authorize('delete', $workingPaper);
 

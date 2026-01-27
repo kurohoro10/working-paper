@@ -1,42 +1,68 @@
 <?php
+/**
+ * ExpenseController
+ *
+ * This controller handles the storing and viewing of expense
+ * for both admin and guest users.
+ *
+ * @category  Controllers
+ * @package   App\Http\Controllers
+ * @author    Name <email@email.com>
+ * @copyright 2026 Name
+ * @license   https://opensource.org/licenses/MIT MIT License
+ * @version   GIT: 1.2.0
+ * @link      http://url.com
+ */
 
 namespace App\Http\Controllers;
 
 use App\Models\Expense;
 use Illuminate\Http\Request;
 use App\Models\WorkingPaper;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\RedirectResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Handles expense CRUD for working papers.
+ * Class ExpenseController
+ *
+ * Manages the lifecycle of expense records associated with working papers,
+ * including file management for receipts and multi-layer authorization.
  */
 class ExpenseController extends Controller
 {
     /**
-     * Store a new expense.
+     * Store a new expense for a specific working paper.
+     *
+     * Validates input, ensures the working paper is not finalized,
+     * handles receipt file uploads, and filters internal comments
+     * based on user permissions.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \App\Models\WorkingPaper $workingPaper
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request, WorkingPaper $workingPaper)
+    public function store(Request $request, WorkingPaper $workingPaper): RedirectResponse
     {
-        // Check if the status is finalised
+        // 1. Immutable State Check
         if ($workingPaper->status === 'finalised') {
             return back()->with('error', 'This paper is finalised and cannot be edited.');
         }
 
         $validated = $request->validate([
-            'description'      => 'required|string',
-            'amount'           => 'required|numeric|min:0',
-            'client_comment'   => 'nullable|string',
-            'internal_comment' => 'nullable|string',
-            'receipt'          => 'nullable|file|mimes:pdf,jpg,jpeg,png',
+            'description'      => ['required', 'string'],
+            'amount'           => ['required', 'numeric', 'min:0'],
+            'client_comment'   => ['nullable', 'string'],
+            'internal_comment' => ['nullable', 'string'],
+            'receipt'          => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png'],
         ]);
 
-        // Handle the file upload
+        // 2. Asset Mangement
         if ($request->hasFile('receipt')) {
             // Store the file and add the resulting path to the $validated array
             $validated['receipt_path'] = $request->file('receipt')->store('receipts', 'public');
         }
 
-        // Strip internal_comment if user is NOT an admin
+        // 3. Authorization/Permission Filtering
         if (!auth()->check() || auth()->user()->cannot('addInternalComment', Expense::class)) {
             unset($validated['internal_comment']);
         }
@@ -46,7 +72,19 @@ class ExpenseController extends Controller
         return back()->with('success', 'Expense added.');
     }
 
-    public function viewReceipt(Request $request, Expense $expense)
+    /**
+     * Serve the receipt file for viewing from local storage.
+     *
+     * This implementation relies on the local filesystem. It retrieves the
+     * file from the local storage path and streams it as a binary response.
+     * * Note: This method is currently coupled to local disk drivers.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \App\Models\Expense $expense
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+     */
+    public function viewReceipt(Request $request, Expense $expense): BinaryFileResponse
     {
         // If user is logged in
         if (auth()->check()) {
