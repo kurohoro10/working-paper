@@ -5,6 +5,7 @@ use App\Http\Controllers\ClientWorkingPaperController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WorkingPaperController;
+use App\Http\Controllers\WorkingPaperImportExportController;
 use App\Http\Controllers\WorkingPaperPdfController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,10 +34,18 @@ Route::middleware('auth', 'verified')->group(function () {
         // Route::get('/working-papers/{workingPaper}', 'show')->name('working-papers.show');
 
         Route::post('/working-papers/{workingPaper}/finalise', 'finalise')->name('working-papers.finalise');
-
-        // Handle all standard CRUD except edit/update
-        Route::resource('working-papers', WorkingPaperController::class)->except(['edit', 'update']);
     });
+
+    // Import and Export
+    Route::controller(WorkingPaperImportExportController::class)->group(function () {
+        Route::get('/working-papers/export', 'export')->middleware('can:admin')->name('working-papers.export');
+        Route::get('/working-papers/import', 'showImportForm')->middleware('can:admin')->name('working-papers.import');
+        Route::post('/working-papers/import/preview', 'preview')->middleware('can:admin')->name('working-paper.import.preview');
+        Route::post('/working-papers/import/execute', 'execute')->middleware('can:admin')->name('working-paper.import.execute');
+    });
+
+    // Handle all standard CRUD except edit/update
+    Route::resource('working-papers', WorkingPaperController::class)->except(['edit', 'update']);
 
     // Audit logs
     Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])->middleware('can:viewAuditLogs');
