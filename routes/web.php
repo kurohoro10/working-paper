@@ -4,6 +4,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ClientWorkingPaperController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TokenController;
 use App\Http\Controllers\WorkingPaperController;
 use App\Http\Controllers\WorkingPaperImportExportController;
 use App\Http\Controllers\WorkingPaperPdfController;
@@ -28,11 +29,6 @@ Route::middleware('auth', 'verified')->group(function () {
 
     // Internal working papers
     Route::controller(WorkingPaperController::class)->group(function () {
-        // Route::get('/working-papers', 'index')->name('working-papers.index');
-        // Route::get('/working-papers/create', 'create')->name('working-papers.create');
-        // Route::post('/working-papers', 'store')->name('working-papers.store');
-        // Route::get('/working-papers/{workingPaper}', 'show')->name('working-papers.show');
-
         Route::post('/working-papers/{workingPaper}/finalise', 'finalise')->name('working-papers.finalise');
     });
 
@@ -40,7 +36,8 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::controller(WorkingPaperImportExportController::class)->group(function () {
         Route::get('/working-papers/export', 'export')->middleware('can:admin')->name('working-papers.export');
         Route::get('/working-papers/import', 'showImportForm')->middleware('can:admin')->name('working-papers.import');
-        Route::post('/working-papers/import/preview', 'preview')->middleware('can:admin')->name('working-paper.import.preview');
+        Route::post('/working-papers/import/preview', 'storePreview')->middleware('can:admin')->name('working-paper.import.preview.store');
+        Route::get('/working-papers/import/preview', 'showPreview')->middleware('can:admin')->name('working-paper.import.preview.show');
         Route::post('/working-papers/import/execute', 'execute')->middleware('can:admin')->name('working-paper.import.execute');
     });
 
@@ -65,9 +62,12 @@ Route::controller(ExpenseController::class)->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Client Access (Signed URLs)
+| Client Access (Token)
 |--------------------------------------------------------------------------
 */
+// Token generation
+Route::post('/working-papers/{workingPaper}/share-token/regenerate', [TokenController::class, 'regenerateShareToken'])->name('working-papers.share-token.regenerate');
+
 Route::get('/client/working-paper/{token}', [ClientWorkingPaperController::class, 'show'])->name('client.working-paper.show');
 
 /*

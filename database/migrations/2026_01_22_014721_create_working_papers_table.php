@@ -15,12 +15,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('client_name');
-            $table->string('service');
+            $table->string('service')->nullable();
             $table->string('job_reference')->unique();
             $table->softDeletes();
             $table->year('period');
             $table->enum('status', ['draft', 'sent', 'reviewed', 'finalised']);
             $table->string('share_token')->unique()->nullable();
+            $table->timestamp('share_token_expires_at')->nullable();
             $table->timestamps();
         });
     }

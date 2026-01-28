@@ -2,7 +2,8 @@
 /**
  * WorkingPaperController
  *
- * This controller handles the CRUD operations for working paper.
+ * this controller manages the internal lifecycle of working papears, including
+ * creation, finalisation, and administrative management.
  *
  * @category  Controllers
  * @package   App\Http\Controllers
@@ -19,20 +20,20 @@ use App\Models\WorkingPaper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use App\Models\AuditLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 /**
  * Class WorkingPaperController
  *
- * Handles internal actions on working papers
- * such as finalisation and state changes.
+ * Orchestrates internal workflows for audit working papers. It handles
+ * the transition from draft to finalised states and manages document
+ * snapshot generation.
  */
 class WorkingPaperController extends Controller
 {
     /**
-     * Display a list of working papers (internal users).
+     * Display a paginated list of all working papers.
      *
      * @return \Illuminate\View\View
      */
@@ -44,7 +45,7 @@ class WorkingPaperController extends Controller
     }
 
     /**
-     * Show create form.
+     * Show the form for creating a new working paper.
      *
      * @return \Illuminate\View\View
      */
@@ -55,6 +56,8 @@ class WorkingPaperController extends Controller
 
     /**
      * Store a new working paper draft.
+     * * Note: Share_token and share_token_expires_at are handled automatically
+     * by the WorkingPaper model's "booted" method upon creation.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse
@@ -69,18 +72,15 @@ class WorkingPaperController extends Controller
 
         $workingPaper = WorkingPaper::create([
             ...$validated,
-            'user_id' => auth()->id(),
-            'status'  => 'draft',
+            'user_id'                => auth()->id(),
+            'status'                 => 'draft',
         ]);
 
-        return redirect()->route(
-            'working-papers.show',
-            $workingPaper
-        );
+        return redirect()->route('working-papers.show', $workingPaper);
     }
 
     /**
-     * Display a single working paper.
+     * Display a single working paper and its associated audit trail.
      *
      * @param \App\Models\WorkingPaper $workingPaper
      * @return \Illuminate\View\View
@@ -98,37 +98,35 @@ class WorkingPaperController extends Controller
     /**
      * Finalise a working paper.
      *
-     * - Locks the record
-     * - Generates an immutable PDF snapshot
-     * - Stores audit log
+     * Transition the papear to a read-only state, generate an immutable
+     * PDF snapshot, and record the action in the audit log.
      *
      * @param \App\Models\WorkingPaper $workingPaper
      * @return \Illuminate\Http\RedirectResponse
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function finalise(WorkingPaper $workingPaper):RedirectResponse
     {
         $this->authorize('finalise', $workingPaper);
 
-        // Generate PDF snapshot
+        // Generate PDF snapshot using the snapshot view
         $pdf = Pdf::loadView('pdf.working-paper', [
             'workingPaper' => $workingPaper
         ]);
 
-        // Ensure directory exists
+        // Ensure storage directory exists and save file
         Storage::makeDirectory('snapshots');
         $path = 'snapshots/working-paper-' . $workingPaper->id . '.pdf';
         Storage::put($path, $pdf->output());
 
-        // Update working paper state
+        // Update state and lock the record
         $workingPaper->update([
             'status'            => 'finalised',
             'finalised_at'      => now(),
             'snapshot_pdf_path' => $path,
         ]);
 
-        // $workingPaper->refresh();
-
-        // Audit log
+        // Record the finalisation in audit logs
         $workingPaper->auditLogs()->create([
             'action'  => 'finalised',
             'user_id' => auth()->id(),
@@ -142,10 +140,14 @@ class WorkingPaperController extends Controller
     }
 
     /**
-     * Delete a working paper (Admin only).
+     * Delete a working paper draft.
+     *
+     * Restricts deletion of finalised papers to preserve data integrity.
+     * Logs the deletion event before removing the record.
      *
      * @param \App\Models\WorkingPaper $workingPaper
      * @return \Illuminate\Http\RedirectResponse
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function destroy(WorkingPaper $workingPaper): RedirectResponse
     {
@@ -155,7 +157,7 @@ class WorkingPaperController extends Controller
             abort(403, 'Finalised working papers cannot be deleted.');
         }
 
-        // Log BEFORE delete (important for polymorphic  relations)
+        // Log the deletion prior to record removal for audit persistence
         $workingPaper->auditLogs()->create([
             'action'  => 'deleted',
             'user_id' => auth()->id(),
@@ -165,7 +167,7 @@ class WorkingPaperController extends Controller
             ],
         ]);
 
-        // Optional: delete snapshot PDF if exists
+        // Clean up physical file assets if they exist
         if ($workingPaper->snapshot_pdf_path) {
             Storage::delete($workingPaper->snapshot_pdf_path);
         }

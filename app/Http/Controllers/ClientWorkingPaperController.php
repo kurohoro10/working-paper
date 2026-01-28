@@ -2,7 +2,8 @@
 /**
  * ClientWorkingPaperController
  *
- * This controller handles the guest user's input and output using share token
+ * This controller handles the guest user's input and output using
+ * unique UUID share tokens.
  *
  * @category  Controllers
  * @package   App\Http\Controllers
@@ -23,14 +24,17 @@ use Illuminate\View\View;
 /**
  * Class ClientWorkingPaperController
  *
- * Handles client-facing access to internal working papers via unique tokens.
- * This controller manages the public/guest interaction layer where clients
- * can review their specific data and upload expense details.
+ * Handles public-facing interactions for clients. This includes viewing
+ * data authorized via token and submitting expense documentation without
+ * requiring a full user account.
  */
 class ClientWorkingPaperController extends Controller
 {
     /**
      * Display the working paper for a client using a unique share token.
+     *
+     * Validates the token exists and checks the share_token_expires_at
+     * timestamp before granting access.
      *
      * @param string $token The unique hash/token used to identify the working paper.
      * @return \Illuminate\View\View
@@ -42,14 +46,18 @@ class ClientWorkingPaperController extends Controller
             ->with('expenses')
             ->firstOrfail();
 
+        if ($workingPaper->shareTokenIsExpired()) {
+            abort(410, 'This shared link has expired.');
+        }
+
         return view('working-papers.show', compact('workingPaper'));
     }
 
     /**
      * Bulk store or update client-submitted expense information.
      *
-     * Processes a collection of expense data, handles file uploads for receipts,
-     * and ensure that internal-only fields remain untouched.
+     * Updates description and amounts, and handles receipt file uploads
+     * to the media collection. Returns to the previous page with a success flash.
      *
      * @param \Illuminate\Http\Request $request
      * @param \App\Models\WorkingPaper $workingPaper

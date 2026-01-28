@@ -6,11 +6,11 @@
             </h1>
 
             <a href="{{ route('working-papers.index') }}"
-               class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+               class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Back to List
+                Back
             </a>
         </div>
     </x-slot>
@@ -27,7 +27,7 @@
                         Select a CSV file to import working papers. After upload, you'll be able to map the columns to the appropriate fields.
                     </p>
 
-                    <form method="post" action="{{ route('working-paper.import.preview') }}" enctype="multipart/form-data">
+                    <form method="POST" action="{{ route('working-paper.import.preview.store') }}" enctype="multipart/form-data">
                         @csrf
 
                         <div class="mb-6">
@@ -36,9 +36,12 @@
                             </label>
 
                             <div class="flex items-center justify-center w-full">
-                                <label for="csv" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                                <label id="dropzone-label" for="csv"
+                                    class="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors
+                                    {{ $errors->has('csv') ? 'border-red-500' : 'border-gray-300' }}">
+
                                     <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <svg class="w-12 h-12 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg id="upload-icon" class="w-12 h-12 mb-4 {{ $errors->has('csv') ? 'text-red-400' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                         </svg>
                                         <p class="mb-2 text-sm text-gray-500">
@@ -46,9 +49,13 @@
                                         </p>
                                         <p class="text-xs text-gray-500">CSV files only</p>
                                     </div>
-                                    <input type="file" name="csv" id="csv" accept=".csv" required class="hidden">
+                                    <input type="file" name="csv" id="csv" accept=".csv" class="hidden">
                                 </label>
                             </div>
+
+                            @error('csv')
+                                <p id="error-text" class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p>
+                            @enderror
 
                             <p class="mt-2 text-xs text-gray-500" id="file-name"></p>
                         </div>
@@ -90,13 +97,29 @@
     </div>
 
     <script>
-        // Display selected file name
         document.getElementById('csv').addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name;
+            const file            = e.target.files[0];
             const fileNameDisplay = document.getElementById('file-name');
-            if (fileName) {
-                fileNameDisplay.textContent = `Selected: ${fileName}`;
+            const label           = document.getElementById('dropzone-label');
+            const icon            = document.getElementById('upload-icon');
+            const errorText       = document.getElementById('error-text');
+
+            if (file) {
+                // 1. Update text display
+                fileNameDisplay.textContent = `Selected: ${file.name}`;
                 fileNameDisplay.classList.add('text-green-600', 'font-medium');
+
+                // 2. Remove Error Styles (Red)
+                label.classList.remove('border-red-500', 'border-gray-300');
+                icon.classList.remove('text-red-400', 'text-gray-400');
+
+                if (errorText) {
+                    errorText.classList.add('hidden');
+                }
+
+                // 3. Add Success Styles (Green)
+                label.classList.add('border-green-500', 'bg-green-50');
+                icon.classList.add('text-green-500');
             }
         });
     </script>

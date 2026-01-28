@@ -25,7 +25,7 @@ class WorkingPaperPolicy
      */
     public function update(User $user, WorkingPaper $workingPaper): bool
     {
-        return $workingPaper->status !== 'finalised';
+        return $workingPaper->status !== 'finalised' && $user->id === $workingPaper->user_id || $user->is_admin;
     }
 
     /**

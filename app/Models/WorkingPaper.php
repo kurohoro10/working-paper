@@ -19,8 +19,14 @@ class WorkingPaper extends Model
         'job_reference',
         'period',
         'status',
+        'share_token',
+        'share_token_expires_at',
         'finalised_at',
         'snapshot_pdf_path',
+    ];
+
+    protected $casts = [
+        'share_token_expires_at' => 'datetime',
     ];
 
     public function user()
@@ -31,6 +37,17 @@ class WorkingPaper extends Model
     public function expenses()
     {
         return $this->hasMany(Expense::class);
+    }
+
+    public function shareTokenIsExpired(): bool
+    {
+        // If there is no expiration date set, treat is as expired
+        if (!$this->share_token_expires_at) {
+            return true;
+        }
+
+        // Return true if the current tmie has passed the expiration date
+        return now()->greaterThan($this->share_token_expires_at);
     }
 
     public function auditLogs()
@@ -47,7 +64,9 @@ class WorkingPaper extends Model
             if (!$wp->job_reference) {
                 $wp->job_reference = self::generateJobReference();
             }
-            $wp->share_token = Str::uuid();
+
+            $wp->share_token = (string) Str::uuid();
+            $wp->share_token_expires_at = now()->addDays(1);
         });
     }
 
@@ -75,5 +94,15 @@ class WorkingPaper extends Model
                 $sequence->last_number
             );
         });
+    }
+
+    public function refreshShareToken(): self
+    {
+        $this->update([
+            'share_token' => (string) Str::uuid(),
+            'share_token_expires_at' => now()->addDays(1),
+        ]);
+
+        return $this;
     }
 }
