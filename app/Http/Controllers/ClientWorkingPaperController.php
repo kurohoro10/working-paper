@@ -40,7 +40,7 @@ class ClientWorkingPaperController extends Controller
      * @return \Illuminate\View\View
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
-    public function show(string $token): View
+    public function show(Request $request, string $token): View
     {
         $workingPaper = WorkingPaper::where('share_token', $token)
             ->with('expenses')
@@ -50,7 +50,9 @@ class ClientWorkingPaperController extends Controller
             abort(410, 'This shared link has expired.');
         }
 
-        return view('working-papers.show', compact('workingPaper'));
+        $editingExpense = null;
+
+        return view('working-papers.show', compact('workingPaper', 'editingExpense'));
     }
 
     /**

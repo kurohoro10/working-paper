@@ -33,19 +33,27 @@ class ExpensePolicy
     }
 
     /**
-     * Determine whether the user can update the model.
+     * User can update an expense if:
+     * - they own the working paper
+     * - the working paper is NOT finalised
      */
     public function update(User $user, Expense $expense): bool
     {
-        return false;
+        return
+            $expense->workingPaper->user_id === $user->id &&
+            $expense->workingPaper->status !== 'finalised';
     }
 
     /**
-     * Determine whether the user can delete the model.
+     * User can delete an expense if:
+     * - they own the working paper
+     * - the working paper is NOT finalised
      */
     public function delete(User $user, Expense $expense): bool
     {
-        return false;
+        return
+            $expense->workingPaper->user_id === $user->id &&
+            $expense->workingPaper->status !== 'finalised';
     }
 
     /**

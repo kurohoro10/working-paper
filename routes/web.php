@@ -42,7 +42,7 @@ Route::middleware('auth', 'verified')->group(function () {
     });
 
     // Handle all standard CRUD except edit/update
-    Route::resource('working-papers', WorkingPaperController::class)->except(['edit', 'update']);
+    Route::resource('working-papers', WorkingPaperController::class);
 
     // Audit logs
     Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])->middleware('can:viewAuditLogs');
@@ -58,6 +58,8 @@ Route::controller(ExpenseController::class)->group(function () {
     Route::get('/expenses/{expense}/receipt', 'viewReceipt')->name('expenses.receipt');
 
     Route::post('/client/working-paper/{workingPaper}/expenses', 'store')->name('expenses.store');
+
+    Route::resource('expenses', ExpenseController::class)->only(['edit', 'update', 'destroy']);
 });
 
 /*

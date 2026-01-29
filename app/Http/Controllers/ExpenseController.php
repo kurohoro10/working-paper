@@ -20,6 +20,7 @@ use App\Models\Expense;
 use Illuminate\Http\Request;
 use App\Models\WorkingPaper;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -30,6 +31,68 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class ExpenseController extends Controller
 {
+    /**
+     * Show the expense edit form.
+     *
+     * @param \App\Models\Expense $expense
+     * @return \Illuminate\View\View
+     */
+    public function edit(Expense $expense): View
+    {
+        $this->authorize('update', $expense);
+
+        return view('expenses.edit', compact('expense'));
+    }
+
+    /**
+     * Update an expense
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \App\Models\Expense $expense
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(Request $request, Expense $expense): RedirectResponse
+    {
+        $this->authorize('update', $expense);
+
+        $validated = $request->validate([
+            'description'      => ['required', 'string'],
+            'amount'           => ['required', 'numeric', 'min:0'],
+            'client_comment'   => ['nullable', 'string'],
+            'internal_comment' => ['nullable', 'string'],
+            'receipt'          => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png'],
+        ]);
+
+        // Receipt replacement
+        if ($request->hasFile('receipt')) {
+            $validated['receipt_path'] = $request->file('receipt')->store('receipts', 'public');
+        }
+
+        // Enforce internal comment permission
+        if (auth()->user()->cannot('addInternalComment', Expense::class)) {
+            unset($validated['internal_comment']);
+        }
+
+        $expense->update($validated);
+
+        return back()->with('success', 'Expense updated successfully.');
+    }
+
+    /**
+     * Delete an expense.
+     *
+     * @param \App\Models\Expense $expense
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy(Expense $expense): RedirectResponse
+    {
+        $this->authorize('delete', $expense);
+
+        $expense->delete();
+
+        return back()->with('success', 'Expense deleted.');
+    }
+
     /**
      * Store a new expense for a specific working paper.
      *

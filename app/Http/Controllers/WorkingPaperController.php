@@ -55,6 +55,43 @@ class WorkingPaperController extends Controller
     }
 
     /**
+     * Show edit form for admin-only fields.
+     *
+     * @param \App\Models\WorkingPaper $workingPaper
+     * @return Illuminate\View\View
+     */
+    public function edit(WorkingPaper $workingPaper): View
+    {
+        $this->authorize('update', $workingPaper);
+
+        return view('working-papers.edit', compact('workingPaper'));
+    }
+
+    public function update(Request $request, WorkingPaper $workingPaper): RedirectResponse
+    {
+        $this->authorize('update', $workingPaper);
+
+
+        $validated = $request->validate([
+            'client_name' => ['required', 'string', 'max:255'],
+            'service'     => ['required', 'string', 'max:255'],
+        ]);
+
+        $workingPaper->update($validated);
+
+        // Audit trail
+        $workingPaper->auditLogs()->create([
+            'action'  => 'updated_details',
+            'user_id' => auth()->id(),
+            'meta'    => $validated,
+        ]);
+
+        return redirect()
+            ->route('working-papers.show', $workingPaper)
+            ->with('success', 'Client and service updated successfully');
+    }
+
+    /**
      * Store a new working paper draft.
      * * Note: Share_token and share_token_expires_at are handled automatically
      * by the WorkingPaper model's "booted" method upon creation.
@@ -85,14 +122,24 @@ class WorkingPaperController extends Controller
      * @param \App\Models\WorkingPaper $workingPaper
      * @return \Illuminate\View\View
      */
-    public function show(WorkingPaper $workingPaper): View
+    public function show(Request $request, WorkingPaper $workingPaper): View
     {
+        $editingExpense = null;
+
         $auditLogs = $workingPaper->auditLogs()
             ->with('user')
             ->latest()
             ->get();
 
-        return view('working-papers.show', compact('workingPaper', 'auditLogs'));
+        if ($request->filled('expense')) {
+            $editingExpense = $workingPaper->expenses()
+                ->where('id', $request->expense)
+                ->firstOrFail();
+
+            $this->authorize('update', $editingExpense);
+        }
+
+        return view('working-papers.show', compact('workingPaper', 'auditLogs', 'editingExpense'));
     }
 
     /**

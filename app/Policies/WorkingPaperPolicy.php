@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * WorkingPaperPolicy
+ *
+ * Controls authorization for working paper actions.
+ */
 namespace App\Policies;
 
 use App\Models\User;
@@ -25,7 +29,7 @@ class WorkingPaperPolicy
      */
     public function update(User $user, WorkingPaper $workingPaper): bool
     {
-        return $workingPaper->status !== 'finalised' && $user->id === $workingPaper->user_id || $user->is_admin;
+        return ($user->id === $workingPaper->user_id || $user->is_admin) && $workingPaper->status !== 'finalised';
     }
 
     /**
