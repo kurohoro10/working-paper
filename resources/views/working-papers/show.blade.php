@@ -50,31 +50,6 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-
-            {{-- Session Messages --}}
-            @if(session('success'))
-                <div class="mb-4 bg-green-100 border-l-4 border-green-500 p-4 shadow-sm rounded" role="alert">
-                    <p class="text-green-700">{{ session('success') }}</p>
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 shadow-sm rounded" role="alert">
-                    {{ session('error') }}
-                </div>
-            @endif
-
-            {{-- Validation Errors --}}
-            @if($errors->any())
-                <div class="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 shadow-sm rounded">
-                    <ul>
-                        @foreach ($errors->all as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
             {{-- Share link section: Only show to logged in owners --}}
             @auth
                 <div class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded shadow-sm">
@@ -159,7 +134,7 @@
                     <div class="flex justify-between items-start border-b p-6">
                         <div>
                             <h3 class="text-2xl font-bold text-gray-900">{{ $workingPaper->job_reference }}</h3>
-                            <p class="text-gray-500">{{ $workingPaper->client_name }}</p>
+                            <p class="text-gray-500">{{ $workingPaper->client->name }}</p>
                         </div>
                         <span class="px-3 py-1 rounded-full text-sm font-semibold
                             {{ $workingPaper->status === 'finalised' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
@@ -167,7 +142,7 @@
                         </span>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 px-6 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 px-6 mb-8">
                         <div>
                             <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Service Type</label>
                             <p class="mt-1 text-lg text-gray-900">{{ $workingPaper->service }}</p>
@@ -175,6 +150,10 @@
                         <div>
                             <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Reference Code</label>
                             <p class="mt-1 text-lg text-gray-900 font-mono">{{ $workingPaper->job_reference }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Accounting Period</label>
+                            <p class="mt-1 text-lg text-gray-900">{{ $workingPaper->period ?? 'Not specified' }}</p>
                         </div>
                     </div>
 
@@ -315,8 +294,8 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <input type="text"
                                             name="description"
-                                            class="rounded-md border-gray-300" p
-                                            laceholder="Description"
+                                            class="rounded-md border-gray-300"
+                                            placeholder="Description"
                                             required
                                             value="{{ old('description', $editingExpense->description ?? '') }}"
                                     >
@@ -325,7 +304,7 @@
                                             name="amount"
                                             step="0.01"
                                             class="rounded-md border-gray-300"
-                                            laceholder="Amount"
+                                            placeholder="Amount"
                                             required
                                             value="{{ old('amount', $editingExpense->amount ?? '') }}"
                                     >
@@ -333,17 +312,13 @@
 
                                 <textarea name="client_comment" id="client_comment"
                                     class="w-full rounded-md border-gray-300"
-                                    placeholder="Client comment">
-                                    {{ old('client_comment', $editingExpense->client_comment ?? '') }}
-                                </textarea>
+                                    placeholder="Client comment">{{ old('client_comment', $editingExpense->client_comment ?? '') }}</textarea>
 
                                 @auth
                                     @can('addInternalComment', App\Models\Expense::class)
                                         <textarea name="internal_comment" id="internal_comment"
                                         class="w-full rounded-md border-gray-300"
-                                        placeholder="Internal comment">
-                                        {{ old('internal_comment', $editingExpense->internal_comment ?? '') }}
-                                    </textarea>
+                                        placeholder="Internal comment">{{ old('internal_comment', $editingExpense->internal_comment ?? '') }}</textarea>
                                     @endcan
                                 @endauth
 

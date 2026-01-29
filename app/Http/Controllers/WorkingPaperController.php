@@ -16,6 +16,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Client;
+use App\Models\User;
 use App\Models\WorkingPaper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -51,44 +53,11 @@ class WorkingPaperController extends Controller
      */
     public function create(): View
     {
-        return view('working-papers.create');
-    }
+        $this->authorize('create', User::class);
 
-    /**
-     * Show edit form for admin-only fields.
-     *
-     * @param \App\Models\WorkingPaper $workingPaper
-     * @return Illuminate\View\View
-     */
-    public function edit(WorkingPaper $workingPaper): View
-    {
-        $this->authorize('update', $workingPaper);
+        $clients = Client::orderBy('name')->get(['id', 'name', 'email']);
 
-        return view('working-papers.edit', compact('workingPaper'));
-    }
-
-    public function update(Request $request, WorkingPaper $workingPaper): RedirectResponse
-    {
-        $this->authorize('update', $workingPaper);
-
-
-        $validated = $request->validate([
-            'client_name' => ['required', 'string', 'max:255'],
-            'service'     => ['required', 'string', 'max:255'],
-        ]);
-
-        $workingPaper->update($validated);
-
-        // Audit trail
-        $workingPaper->auditLogs()->create([
-            'action'  => 'updated_details',
-            'user_id' => auth()->id(),
-            'meta'    => $validated,
-        ]);
-
-        return redirect()
-            ->route('working-papers.show', $workingPaper)
-            ->with('success', 'Client and service updated successfully');
+        return view('working-papers.create', compact('clients'));
     }
 
     /**
@@ -99,21 +68,58 @@ class WorkingPaperController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, Client $client): RedirectResponse
     {
+        $this->authorize('create', User::class);
+
+        $currentYear = date('Y');
+
         $validated = $request->validate([
-            'client_name'   => 'required|string',
-            'service'       => 'required|string',
-            'period'        => 'required|string',
+            'client_id'        => ['nullable', 'exists:clients,id'],
+            'client_name'      => ['required_without:client_id', 'string', 'max:255'],
+            'email'            => ['nullable', 'email'],
+            'service'          => ['required', 'string', 'max:150'],
+            'period'           => ['required', 'integer', "between:1990,{$currentYear}"],
         ]);
 
+        // 1. Handle Client Selection/Creation
+        if ($request->filled('client_id')) {
+            // User picked a client from the list
+            $client = Client::findOrFail($request->client_id);
+
+        } else {
+            // User typed a new name. Check if the email already belongs to someone else.
+            if ($request->filled('email')) {
+                $existingClient = Client::where('email', $validated['email'])->first();
+
+                if ($existingClient) {
+                    // If the email exists, we link to that cilent instead of crashing or duplicating
+                    $client = $existingClient;
+                } else {
+                    // Truly a new client
+                    $client = Client::create([
+                        'name'  => $validated['client_name'],
+                        'email' => $validated['email'],
+                    ]);
+                }
+            } else {
+                // No email provided, Just create by name
+                $client = Client::create(['name' => $validated['client_name']]);
+            }
+        }
+
+        // 2. Create the working paper
         $workingPaper = WorkingPaper::create([
-            ...$validated,
-            'user_id'                => auth()->id(),
-            'status'                 => 'draft',
+            'client_id' => $client->id,
+            'service'   => $validated['service'],
+            'period'    => $validated['period'],
+            'user_id'   => auth()->id(),
+            'status'    => 'draft',
         ]);
 
-        return redirect()->route('working-papers.show', $workingPaper);
+        return redirect()
+            ->route('working-papers.show', $workingPaper)
+            ->with('success', 'Working paper created successfully.');
     }
 
     /**
@@ -140,6 +146,44 @@ class WorkingPaperController extends Controller
         }
 
         return view('working-papers.show', compact('workingPaper', 'auditLogs', 'editingExpense'));
+    }
+
+    /**
+     * Show edit form for admin-only fields.
+     *
+     * @param \App\Models\WorkingPaper $workingPaper
+     * @return Illuminate\View\View
+     */
+    public function edit(WorkingPaper $workingPaper): View
+    {
+        $this->authorize('update', $workingPaper);
+
+        return view('working-papers.edit', compact('workingPaper'));
+    }
+
+    public function update(Request $request, WorkingPaper $workingPaper): RedirectResponse
+    {
+        $this->authorize('update', $workingPaper);
+
+        $currentYear = date('Y');
+
+        $validated = $request->validate([
+            'service'     => ['required', 'string', 'max:255'],
+            'period'           => ['required', 'integer', "between:1990,{$currentYear}"],
+        ]);
+
+        $workingPaper->update($validated);
+
+        // Audit trail
+        $workingPaper->auditLogs()->create([
+            'action'  => 'updated_details',
+            'user_id' => auth()->id(),
+            'meta'    => $validated,
+        ]);
+
+        return redirect()
+            ->route('working-papers.show', $workingPaper)
+            ->with('success', 'Client and service updated successfully');
     }
 
     /**

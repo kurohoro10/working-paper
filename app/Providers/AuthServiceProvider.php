@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Expense;
+use App\Models\User;
 use App\Models\WorkingPaper;
 use App\Policies\ExpensePolicy;
+use App\Policies\UserPolicy;
 use App\Policies\WorkingPaperPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
@@ -19,6 +21,7 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         WorkingPaper::class => WorkingPaperPolicy::class,
         Expense::class      => ExpensePolicy::class,
+        User::class         => UserPolicy::class,
     ];
 
     /**

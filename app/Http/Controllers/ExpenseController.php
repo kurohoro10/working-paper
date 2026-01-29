@@ -88,9 +88,13 @@ class ExpenseController extends Controller
     {
         $this->authorize('delete', $expense);
 
+        $workingPaperId = $expense->working_paper_id;
+
         $expense->delete();
 
-        return back()->with('success', 'Expense deleted.');
+        return redirect()
+            ->route('working-papers.show', $workingPaperId)
+            ->with('success', 'Expense deleted.');
     }
 
     /**

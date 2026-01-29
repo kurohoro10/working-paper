@@ -11,18 +11,31 @@
                 @csrf
                 @method('PATCH')
 
-                <div>
-                    <label for="client_name" class="block text-sm font-medium text-gray-700">
-                        Client Name
-                    </label>
-                    <input type="text" name="client_name" id="client_name" value="{{ old('client_name', $workingPaper->client_name) }}" class="mt-1 w-full rounded-md border-gray-300" required>
-                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label for="service" class="block text-sm font-medium text-gray-700">
+                            Service Type
+                        </label>
+                        <input type="text" name="service" id="service" value="{{ old('service', $workingPaper->service) }}" class="mt-1 w-full rounded-md border-gray-300" required>
+                    </div>
 
-                <div>
-                    <label for="service" class="block text-sm font-medium text-gray-700">
-                        Service Type
-                    </label>
-                    <input type="text" name="service" id="service" value="{{ old('service', $workingPaper->service) }}" class="mt-1 w-full rounded-md border-gray-300" required>
+                    <div>
+                        <label for="period" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ __('Accounting Period') }} ({{ __('Year') }})
+                        </label>
+                        <select name="period" id="period"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="">-- Choose Year --</option>
+                            @foreach(range(date('Y'), 1990) as $year)
+                                <option value="{{ $year }}" {{ old('period') == $year ? 'selected' : '' }}>
+                                    {{ $year }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('period')
+                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
                 <div class="flex justify-end gap-4">

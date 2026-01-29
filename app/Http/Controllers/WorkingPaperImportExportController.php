@@ -65,7 +65,7 @@ class WorkingPaperImportExportController extends Controller
                 foreach ($papers as $wp) {
                     fputcsv($handle, [
                         $wp->job_reference,
-                        $wp->client_name,
+                        $wp->client->name,
                         $wp->service,
                         $wp->period,
                         $wp->status,

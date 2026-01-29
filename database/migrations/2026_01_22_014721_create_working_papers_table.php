@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('working_papers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('client_name');
+            $table->foreignId('client_id')->constrained()->cascadeOnDelete();
             $table->string('service')->nullable();
             $table->string('job_reference')->unique();
             $table->softDeletes();
             $table->year('period');
-            $table->enum('status', ['draft', 'sent', 'reviewed', 'finalised']);
+            $table->enum('status', ['draft', 'sent', 'reviewed', 'returned', 'finalised']);
             $table->string('share_token')->unique()->nullable();
             $table->timestamp('share_token_expires_at')->nullable();
             $table->timestamps();

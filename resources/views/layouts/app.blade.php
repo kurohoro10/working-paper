@@ -29,6 +29,7 @@
 
             <!-- Page Content -->
             <main>
+                @include('partials.flash-messages')
                 {{ $slot }}
             </main>
         </div>

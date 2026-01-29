@@ -144,19 +144,33 @@
 </head>
 <body>
     <div class="header">
-        <h1>{{ $workingPaper->client_name }}</h1>
+        <h1>Working Paper - {{ $workingPaper->job_reference }}</h1>
         <div class="metadata">
+            <div class="metadata-row">
+                <div class="metadata-label">Client Name:</div>
+                <div class="metadata-value">{{ $workingPaper->client->name }}</div>
+            </div>
+            @if($workingPaper->client->email)
+            <div class="metadata-row">
+                <div class="metadata-label">Client Email:</div>
+                <div class="metadata-value">{{ $workingPaper->client->email }}</div>
+            </div>
+            @endif
             <div class="metadata-row">
                 <div class="metadata-label">Service:</div>
                 <div class="metadata-value">{{ $workingPaper->service }}</div>
             </div>
             <div class="metadata-row">
                 <div class="metadata-label">Period:</div>
-                <div class="metadata-value">{{ $workingPaper->period }}</div>
+                <div class="metadata-value">{{ $workingPaper->period ?? 'Not specified' }}</div>
             </div>
             <div class="metadata-row">
                 <div class="metadata-label">Job Reference:</div>
                 <div class="metadata-value">{{ $workingPaper->job_reference }}</div>
+            </div>
+            <div class="metadata-row">
+                <div class="metadata-label">Status:</div>
+                <div class="metadata-value" style="text-transform: capitalize;">{{ $workingPaper->status }}</div>
             </div>
         </div>
     </div>

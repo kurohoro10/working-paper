@@ -20,6 +20,10 @@
                         <x-nav-link :href="route('working-papers.index')" :active="request()->routeIs('working-papers.*')">
                             Working Papers
                         </x-nav-link>
+
+                         <x-nav-link :href="route('admin.clients.index')" :active="request()->routeIs('admin.users.*')">
+                            Clients
+                        </x-nav-link>
                     </div>
 
                 <!-- Settings Dropdown -->

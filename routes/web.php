@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminClientController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ClientWorkingPaperController;
 use App\Http\Controllers\ExpenseController;
@@ -10,15 +11,21 @@ use App\Http\Controllers\WorkingPaperImportExportController;
 use App\Http\Controllers\WorkingPaperPdfController;
 use Illuminate\Support\Facades\Route;
 
-
 Route::get('/', function () {
-    return view('welcome');
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+    return redirect()->route('login');
 });
-
 
 Route::middleware('auth', 'verified')->group(function () {
     // Dashboard
     Route::get('/dashboard', function () { return view('dashboard'); })->name('dashboard');
+
+    // Register user via admin
+    Route::middleware('can:create,App\Models\User')->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('clients', AdminClientController::class);
+    });
 
     // User profile
     Route::controller(ProfileController::class)->group(function () {
