@@ -85,12 +85,25 @@
                                                 <select name="mapping[{{ $index }}]"
                                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                                                     <option value="">-- Ignore --</option>
-                                                    @foreach($fields as $field)
-                                                        <option value="{{ $field }}"
+
+                                                    <optgroup label="Working Paper">
+                                                        @foreach($workingPaperFields as $field)
+                                                            <option value="working_paper.{{ $field }}"
                                                                 {{ strtolower(str_replace([' ', '_', '-'], '', $header)) === strtolower(str_replace([' ', '_', '-'], '', $field)) ? 'selected' : '' }}>
-                                                            {{ ucwords(str_replace('_', ' ', $field)) }}
-                                                        </option>
-                                                    @endforeach
+                                                                {{ ucwords(str_replace('_', ' ', $field)) }}
+                                                            </option>
+                                                        @endforeach
+                                                    </optgroup>
+
+                                                    <optgroup label="Client">
+                                                        @foreach($clientFields as $field)
+                                                            <option value="client.{{ $field }}"
+                                                                {{ strtolower(str_replace([' ', '_', '-'], '', $header)) === strtolower(str_replace([' ', '_', '-'], '', $field)) ? 'selected' : '' }}>
+                                                                {{ ucwords(str_replace('_', ' ', $field)) }}
+                                                            </option>
+                                                        @endforeach
+                                                    </optgroup>
+                                                    
                                                 </select>
                                             </td>
                                         </tr>
