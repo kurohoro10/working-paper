@@ -51,7 +51,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             {{-- Share link section: Only show to logged in owners --}}
-            @auth
+            @if(auth()->check() && auth()->user()->getRoleRank() >= 2)
                 <div class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded shadow-sm">
                     <div class="flex justify-between items-center">
                         <div>
@@ -126,7 +126,7 @@
                         </div>
                     </div>
                 </div>
-            @endauth
+            @endif
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-8">
@@ -178,19 +178,21 @@
                                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                     {{ __('Client Comment') }}
                                                 </th>
-                                                @auth
+
+                                                @if(auth()->check() && auth()->user()->getRoleRank() >= 2)
                                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                         {{ __('Internal Comment') }}
                                                     </th>
-                                                @endauth
+                                                @endif
+
                                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                     {{ __('Receipt') }}
                                                 </th>
-                                                @auth
+                                                @if(auth()->check() && auth()->user()->getRoleRank() >= 2)
                                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                         {{ __('Action') }}
                                                     </th>
-                                                @endauth
+                                                @endif
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
@@ -205,11 +207,11 @@
                                                     <td class="px-4 py-3 text-sm text-gray-600">
                                                         {{ $expense->client_comment }}
                                                     </td>
-                                                    @auth
+                                                    @if(auth()->check() && auth()->user()->getRoleRank() >= 2)
                                                         <td class="px-4 py-3 text-sm text-gray-600">
                                                             {{ $expense->internal_comment }}
                                                         </td>
-                                                    @endauth
+                                                    @endif
                                                     <td class="px-4 py-3 text-sm">
                                                         <div class="flex items-center justify-center">
                                                             @if($expense->receipt_path)
@@ -256,6 +258,7 @@
                                                             </div>
                                                         </td>
                                                     @endauth
+
                                                 </tr>
                                             @endforeach
                                         </tbody>

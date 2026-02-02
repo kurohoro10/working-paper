@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\Client;
 use App\Models\Expense;
 use App\Models\User;
 use App\Models\WorkingPaper;
+use App\Policies\ClientPolicy;
 use App\Policies\ExpensePolicy;
 use App\Policies\UserPolicy;
 use App\Policies\WorkingPaperPolicy;
@@ -22,6 +24,7 @@ class AuthServiceProvider extends ServiceProvider
         WorkingPaper::class => WorkingPaperPolicy::class,
         Expense::class      => ExpensePolicy::class,
         User::class         => UserPolicy::class,
+        Client::class       => ClientPolicy::class,
     ];
 
     /**

@@ -41,9 +41,25 @@ class WorkingPaperController extends Controller
      */
     public function index(): View
     {
-        $workingPapers = WorkingPaper::latest()->paginate(10);
+        $user = auth()->user();
+        $query = WorkingPaper::latest();
+
+        if ($user->getRoleRank() < 2) {
+            // Find the client record associated with this user
+            $client = Client::where('user_id', $user->id)->first();
+
+            if ($client) {
+                $query->where('client_id', $client->id);
+            } else {
+                // If a client user somehow has no client profile, show nothing
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        $workingPapers = $query->paginate(10);
 
         return view('working-papers.index', compact('workingPapers'));
+
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Client;
 use App\Models\User;
 use App\Rules\RoleHierarchy;
 use Illuminate\Http\Request;
@@ -13,6 +14,8 @@ class UserController extends Controller
 {
     public function create()
     {
+        $this->authorize('create', User::class);
+
         return view('admin.users.create');
     }
 
@@ -30,19 +33,32 @@ class UserController extends Controller
 
         $validated['password'] = Hash::make($validated['password']);
 
-        User::create($validated);
+        $user = User::create($validated);
 
-        return redirect()->route('dashboard')
+        if ($validated['role'] === 'client') {
+            Client::create([
+                'user_id' => $user->id,
+                'name'    => $user->name,
+                'email'   => $user->email ?? null,
+                'phone'   => $user->phone ?? null,
+            ]);
+        }
+
+        return redirect()->route('users.create')
             ->with('success', 'User created successfully.');
     }
 
     public function edit(User $user)
     {
+        $this->authorize('show', User::class);
+
         return view('admin.users.edit', compact('user'));
     }
 
     public function update(Request $request, User $user)
     {
+        $this->authorize('update', User::class);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],

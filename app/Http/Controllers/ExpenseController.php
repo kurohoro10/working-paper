@@ -154,7 +154,7 @@ class ExpenseController extends Controller
     public function viewReceipt(Request $request, Expense $expense): BinaryFileResponse
     {
         // If user is logged in
-        if (auth()->check()) {
+        if (auth()->check() && auth()->user()->getRoleRank() >= 1) {
             $this->authorize('view', $expense);
         } else {
             $token = $request->query('token');

@@ -39,9 +39,9 @@ class AdminClientController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request, Client $client): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
-        $this->authorize('create', $client);
+        $this->authorize('create', Client::class);
 
         $validated = $request->validate([
             'name'       => ['required', 'string', 'max:255'],

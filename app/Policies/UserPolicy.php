@@ -7,11 +7,25 @@ use App\Models\User;
 class UserPolicy
 {
     /**
-     * Create a new policy instance.
+     * Allows viewing the list of clients
+     *
+     * @param \App\Models\User $user
+     * @return boolean
      */
-    public function __construct()
+    public function viewAny(User $user): bool
     {
-        //
+        return in_array($user->role, ['admin', 'endurego_internal']);
+    }
+
+    /**
+     * Allows viewing a specific client
+     *
+     * @param \App\Models\User $user
+     * @return boolean
+     */
+    public function view(User $user): bool
+    {
+        return in_array($user->role, ['admin', 'endurego_internal']);
     }
 
     /**

@@ -35,8 +35,8 @@ Route::middleware('auth', 'verified')->group(function () {
         Route::delete('/profile', 'destroy')->name('profile.destroy');
     });
 
-    // Add User
-    Route::prefix('admin')->group(function () {
+    // Add User & Edit User - Restricted to Admin/Internal
+    Route::middleware('can:create,App\Models\User')->prefix('admin')->group(function () {
         Route::resource('users', UserController::class);
     });
 

@@ -21,17 +21,12 @@ class WorkingPaperPolicy
         return in_array($user->role, ['admin', 'endurego_internal']);
     }
 
-    public function view(): bool
+    public function view(User $user, WorkingPaper $workingPaper): bool
     {
-        return true;
+        return in_array($user->role, ['admin', 'endurego_internal']) || $user->id === $workingPaper->user_id;
     }
 
     public function create(User $user): bool
-    {
-        return in_array($user->role, ['admin', 'endurego_internal']);
-    }
-
-    public function store(User $user): bool
     {
         return in_array($user->role, ['admin', 'endurego_internal']);
     }
@@ -41,7 +36,7 @@ class WorkingPaperPolicy
      */
     public function update(User $user, WorkingPaper $workingPaper): bool
     {
-        return ($user->id === $workingPaper->user_id || $user->is_admin) && $workingPaper->status !== 'finalised';
+        return in_array($user->role, ['admin', 'endurego_internal']) && $workingPaper->status !== 'finalised';
     }
 
     /**

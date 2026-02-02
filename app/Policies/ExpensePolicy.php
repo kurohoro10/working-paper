@@ -21,7 +21,7 @@ class ExpensePolicy
      */
     public function view(User $user, Expense $expense): bool
     {
-        return $expense->workingPaper->user_id === $user->id;
+        return in_array($user->role, ['admin', 'endurego_internal', 'client']);
     }
 
     /**
@@ -40,7 +40,7 @@ class ExpensePolicy
     public function update(User $user, Expense $expense): bool
     {
         return
-            $expense->workingPaper->user_id === $user->id &&
+            in_array($user->role, ['admin', 'endurego_internal']) &&
             $expense->workingPaper->status !== 'finalised';
     }
 
@@ -52,7 +52,7 @@ class ExpensePolicy
     public function delete(User $user, Expense $expense): bool
     {
         return
-            $expense->workingPaper->user_id === $user->id &&
+            in_array($user->role, ['admin', 'endurego_internal']) &&
             $expense->workingPaper->status !== 'finalised';
     }
 
