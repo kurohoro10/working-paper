@@ -160,7 +160,6 @@
         @endif
     </div>
 
-    @push('scripts')
     <script>
         function toggleSelectAll() {
             const selectAll = document.getElementById('selectAll');
@@ -201,5 +200,4 @@
             updateBulkActions();
         }
     </script>
-    @endpush
 </x-app-layout>
