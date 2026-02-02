@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex items-center justify-between max-w-7xl mx-auto">
             <h1 class="font-semibold text-xl text-gray-800 leading-tight">
-                Import Working Papers
+                Import Data
             </h1>
 
             <a href="{{ route('working-papers.index') }}"

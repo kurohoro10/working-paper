@@ -18,6 +18,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\WorkingPaper;
+use App\Models\Client;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\RedirectResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Http\Request;
@@ -61,11 +63,13 @@ class WorkingPaperImportExportController extends Controller
             ]);
 
             // Process in chunks to maintain performance
-            WorkingPaper::orderBy('created_at')->chunk(500, function ($papers) use ($handle) {
+            WorkingPaper::with('client')
+                ->orderBy('created_at')
+                ->chunk(500, function ($papers) use ($handle) {
                 foreach ($papers as $wp) {
                     fputcsv($handle, [
                         $wp->job_reference,
-                        $wp->client->name,
+                        optional($wp->client)->name,
                         $wp->service,
                         $wp->period,
                         $wp->status,
@@ -101,9 +105,10 @@ class WorkingPaperImportExportController extends Controller
         $headers = fgetcsv($handle);
         fclose($handle);
 
-        $fields = ['client_name', 'service', 'period', 'status'];
+        $workingPaperFields = ['service', 'period', 'status'];
+        $clientFields = ['name', 'email', 'phone', 'company', 'tax_number', 'address', 'notes'];
 
-        return  view('working-papers.map', compact('headers', 'fields', 'path'));
+        return  view('working-papers.map', compact('headers', 'path', 'workingPaperFields', 'clientFields'));
     }
 
     /**
@@ -133,95 +138,138 @@ class WorkingPaperImportExportController extends Controller
     }
 
     /**
- * Execute the import based on user-defined mapping.
- * Uses a Database Transaction to ensure atomicity.
- *
- * @param \Illuminate\Http\Request $request
- * @return \Illuminate\Http\RedirectResponse
- */
-public function execute(Request $request): RedirectResponse
-{
-    if (! $request->has('mapping')) {
-        abort(400, 'Invalid import state.');
-    }
+     * Execute the import based on user-defined mapping.
+     * Uses a Database Transaction to ensure atomicity.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function execute(Request $request): RedirectResponse
+    {
+        if (! $request->has('mapping')) {
+            abort(400, 'Invalid import state.');
+        }
 
-    $request->validate([
-        'path'    => ['required', 'string'],
-        'mapping' => ['required', 'array'],
-    ]);
+        $request->validate([
+            'path'    => ['required', 'string'],
+            'mapping' => ['required', 'array'],
+        ]);
 
-    $requiredFields = ['client_name', 'service', 'period'];
+        $requiredFields = [
+            'client.name',
+            'working_paper.service',
+            'working_paper.period',
+        ];
 
-    $mappedFields = array_values(array_filter($request->mapping));
-    $missing = array_diff($requiredFields, $mappedFields);
+        $mappedFields = array_values(array_filter($request->mapping));
+        $missing = array_diff($requiredFields, $mappedFields);
 
-    if (! empty($missing)) {
-        return back()
-            ->withErrors([
-                'import_error' => 'Missing required mappings: ' . implode(', ', $missing),
-            ])
-            ->withInput();
-    }
+        if (! empty($missing)) {
+            return back()
+                ->withErrors([
+                    'import_error' => 'Missing required mappings: ' . implode(', ', $missing),
+                ])
+                ->withInput();
+        }
 
-    $fullPath = Storage::disk('local')->path($request->path);
-    $handle = fopen($fullPath, 'r');
+        $fullPath = Storage::disk('local')->path($request->path);
+        $handle = fopen($fullPath, 'r');
 
-    fgetcsv($handle); // skip header
-    $rowNumber = 1;
+        fgetcsv($handle); // skip header
+        $rowNumber = 1;
 
-    DB::beginTransaction();
+        DB::beginTransaction();
 
-    try {
-        while (($row = fgetcsv($handle)) !== false) {
-            $rowNumber++;
-            $data = [];
+        try {
+            while (($row = fgetcsv($handle)) !== false) {
+                $rowNumber++;
+                $clientData = [];
+                $workingPaperData = [];
 
-            foreach ($request->mapping as $csvIndex => $field) {
-                if ($field) {
-                    $value = trim($row[$csvIndex] ?? '');
-                    $data[$field] = $value === '' ? null : $value;
+                foreach ($request->mapping as $columnIndex => $target) {
+                    if (! $target) continue;
+                    
+                    [$type, $field] = explode('.', $target);
+
+                    $value = $row[$columnIndex] ?? null;
+
+                    if ($type === 'client') {
+                        $clientData[$field] = $value;
+                    }
+
+                    if ($type === 'working_paper') {
+                        $workingPaperData[$field] = $value;
+                    }
                 }
-            }
 
-            $validator = Validator::make($data, [
-                'client_name' => ['required', 'string', 'max:256'],
-                'service'     => ['required', 'string', 'max:256'],
-                'period'      => ['required', 'string', 'max:256'],
-            ]);
+                $workingPaperValidator = Validator::make($workingPaperData, [
+                    'service'     => ['required', 'string', 'max:256'],
+                    'period'      => ['required', 'integer', 'between:1990,' . date('Y')],
+                    'status'      => ['nullable', Rule::in(['draft', 'finalised'])],
+                ]);
 
-            if ($validator->fails()) {
-                throw ValidationException::withMessages([
-                    'import_error' => "Row {$rowNumber}: " . $validator->errors()->first(),
+                $clientValidator = Validator::make($clientData, [
+                    'name'       => ['required', 'string', 'max:256'],
+                    'email'      => ['nullable', 'email'],
+                    'phone'      => ['nullable', 'string', 'max:20'],
+                    'company'    => ['nullable', 'string', 'max:150'],
+                    'tax_number' => ['nullable', 'string', 'max:50'],
+                    'address'    => ['nullable', 'string', 'max:500'],
+                    'notes'      => ['nullable', 'string'],
+                ]);
+
+                if ($workingPaperValidator->fails()) {
+                    throw ValidationException::withMessages([
+                        'import_error' => "Row {$rowNumber}: " . $workingPaperValidator->errors()->first(),
+                    ]);
+                }
+
+                if ($clientValidator->fails()) {
+                    throw ValidationException::withMessages([
+                        'import_error' => "Row {$rowNumber}: " . $clientValidator->errors()->first(),
+                    ]);
+                }
+
+                // Create or resolve client safely
+                if (! empty($clientData['email'])) {
+                    $client = Client::firstOrCreate(
+                        ['email' => $clientData['email']],
+                        $clientData
+                    );
+                } else {
+                    $client = Client::firstOrCreate(
+                        ['name' => $clientData['name']],
+                        $clientData
+                    );
+                }
+
+                WorkingPaper::create([
+                    ...$workingPaperData,
+                    'user_id' => auth()->id(),
+                    'client_id' => $client->id,
+                    'status'  => $workingPaperData['status'] ?? 'draft',
                 ]);
             }
 
-            WorkingPaper::create([
-                ...$data,
-                'user_id' => auth()->id(),
-                'status'  => $data['status'] ?? 'draft',
-            ]);
-        }
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
 
-        DB::commit();
-    } catch (\Throwable $e) {
-        DB::rollBack();
+            fclose($handle);
+            Storage::delete($request->path);
+
+            return back()
+                ->withErrors([
+                    'import_error' => $e->getMessage(),
+                ])
+                ->withInput();
+        }
 
         fclose($handle);
         Storage::delete($request->path);
 
-        return back()
-            ->withErrors([
-                'import_error' => $e->getMessage(),
-            ])
-            ->withInput();
+        return redirect()
+            ->route('working-papers.index')
+            ->with('success', 'CSV import completed');
     }
-
-    fclose($handle);
-    Storage::delete($request->path);
-
-    return redirect()
-        ->route('working-papers.index')
-        ->with('success', 'CSV import completed');
-}
-
 }
