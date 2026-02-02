@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role'
     ];
 
     /**
@@ -44,5 +45,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function getRoleRank(): int
+    {
+        return match($this->role) {
+            'admin'             => 3,
+            'endurego_internal' => 2,
+            'client'            => 1,
+            default             => 0,
+        };
     }
 }

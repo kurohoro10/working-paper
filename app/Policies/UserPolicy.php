@@ -19,6 +19,6 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'endurego_internal']);
     }
 }

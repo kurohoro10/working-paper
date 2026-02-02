@@ -13,7 +13,7 @@ class ExpensePolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return in_array($user->role, ['admin', 'endurego_internal']);
     }
 
     /**
@@ -29,7 +29,7 @@ class ExpensePolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return in_array($user->role, ['admin', 'endurego_internal']);
     }
 
     /**
@@ -61,7 +61,7 @@ class ExpensePolicy
      */
     public function restore(User $user, Expense $expense): bool
     {
-        return false;
+        return in_array($user->role, ['admin', 'endurego_internal']);
     }
 
     /**
@@ -69,7 +69,7 @@ class ExpensePolicy
      */
     public function forceDelete(User $user, Expense $expense): bool
     {
-        return false;
+        return in_array($user->role, ['admin', 'endurego_internal']);
     }
 
     /**
@@ -77,6 +77,6 @@ class ExpensePolicy
      */
     public function addInternalComment(User $user): bool
     {
-        return trim($user->role) === 'admin';
+        return in_array($user->role, ['admin', 'endurego_internal']);
     }
 }

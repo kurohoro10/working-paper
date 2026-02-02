@@ -21,9 +21,11 @@
                             Working Papers
                         </x-nav-link>
 
-                         <x-nav-link :href="route('admin.clients.index')" :active="request()->routeIs('admin.users.*')">
-                            Clients
-                        </x-nav-link>
+                        @if(auth()->user()->getRoleRank() >= 2)
+                            <x-nav-link :href="route('admin.clients.index')" :active="request()->routeIs('admin.users.*')">
+                                Clients
+                            </x-nav-link>
+                        @endif
                     </div>
 
                 <!-- Settings Dropdown -->
@@ -46,6 +48,13 @@
                             <x-dropdown-link :href="route('profile.edit')">
                                 {{ __('Profile') }}
                             </x-dropdown-link>
+
+                            {{-- Check user role if current user can add another user --}}
+                            @if(auth()->user()->getRoleRank() >= 2)
+                                <x-dropdown-link :href="route('users.create')">
+                                    {{ __('Add User') }}
+                                </x-dropdown-link>
+                            @endif
 
                             <!-- Authentication -->
                             <form method="POST" action="{{ route('logout') }}">

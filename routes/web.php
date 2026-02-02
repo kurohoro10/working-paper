@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminClientController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ClientWorkingPaperController;
 use App\Http\Controllers\ExpenseController;
@@ -32,6 +33,11 @@ Route::middleware('auth', 'verified')->group(function () {
         Route::get('/profile', 'edit')->name('profile.edit');
         Route::patch('/profile', 'update')->name('profile.update');
         Route::delete('/profile', 'destroy')->name('profile.destroy');
+    });
+
+    // Add User
+    Route::prefix('admin')->group(function () {
+        Route::resource('users', UserController::class);
     });
 
     // Internal working papers

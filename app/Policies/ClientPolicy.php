@@ -15,7 +15,7 @@ class ClientPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'endurego_internal']);
     }
 
     /**
@@ -27,7 +27,7 @@ class ClientPolicy
      */
     public function view(User $user, Client $client): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'endurego_internal']);
     }
 
     /**
@@ -38,7 +38,7 @@ class ClientPolicy
      */
     public function create(User $user): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'endurego_internal']);
     }
 
     /**
@@ -49,7 +49,7 @@ class ClientPolicy
      */
     public function update(User $user): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'endurego_internal']);
     }
 
     /**
@@ -60,6 +60,6 @@ class ClientPolicy
      */
     public function delete(User $user): bool
     {
-        return $user->role === 'admin';
+        return in_array($user->role, ['admin', 'endurego_internal']);
     }
 }
