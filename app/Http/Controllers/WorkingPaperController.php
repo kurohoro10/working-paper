@@ -88,14 +88,11 @@ class WorkingPaperController extends Controller
     {
         $this->authorize('create', User::class);
 
-        $currentYear = date('Y');
-
         $validated = $request->validate([
             'client_id'        => ['nullable', 'exists:clients,id'],
             'client_name'      => ['required_without:client_id', 'string', 'max:255'],
             'email'            => ['nullable', 'email'],
             'service'          => ['required', 'string', 'max:150'],
-            'period'           => ['required', 'integer', "between:1990,{$currentYear}"],
         ]);
 
         // 1. Handle Client Selection/Creation
@@ -128,7 +125,6 @@ class WorkingPaperController extends Controller
         $workingPaper = WorkingPaper::create([
             'client_id' => $client->id,
             'service'   => $validated['service'],
-            'period'    => $validated['period'],
             'user_id'   => auth()->id(),
             'status'    => 'draft',
         ]);
@@ -284,5 +280,24 @@ class WorkingPaperController extends Controller
         return redirect()
             ->route('working-papers.index')
             ->with('success', 'Working paper deleted successfully.');
+    }
+
+    public function updateWorkTypes(Request $request, WorkingPaper $workingPaper)
+    {
+        $this->authorize('update', $workingPaper); // Add authorization if needed
+
+        $workTypes = $workingPaper->work_types ?? [];
+        $type = $request->input('work_type');
+        $enabled = $request->input('enabled');
+
+        if ($enabled && !in_array($type, $workTypes)) {
+            $workTypes[] = $type;
+        } elseif (!$enabled) {
+            $workTypes = array_values(array_diff($workTypes, [$type]));
+        }
+
+        $workingPaper->update(['work_types' => $workTypes]);
+
+        return response()->json(['success' => true]); // Make sure this returns JSON
     }
 }

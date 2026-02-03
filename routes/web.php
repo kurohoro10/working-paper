@@ -93,3 +93,5 @@ Route::get('/client/working-paper/{token}', [ClientWorkingPaperController::class
 Route::get('/working-papers/{workingPaper}/pdf', [WorkingPaperPdfController::class, 'download']);
 
 require __DIR__.'/auth.php';
+
+Route::post('/working-papers/{workingPaper}/update-work-types', [WorkingPaperController::class, 'updateWorkTypes'])->name('working-papers.update-work-types');

@@ -1,10 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between max-w-7xl mx-auto">
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">
-                Working Papers
-            </h1>
-
+        <x-page-header :title="__('Working Papers')">
             @if(auth()->check() && auth()->user()->getRoleRank() >= 2)
                 <div class="flex items-center gap-3">
                     <a href="{{ route('working-papers.export') }}"
@@ -32,8 +28,7 @@
                     </a>
                 </div>
             @endif
-
-        </div>
+        </x-page-header>
     </x-slot>
 
     <div class="p-6 max-w-7xl mx-auto">

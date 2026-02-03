@@ -1,23 +1,16 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between max-w-7xl mx-auto">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Create New Working Paper') }}
-            </h2>
-
-            <a href="{{ route('working-papers.index') }}"
-                class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back
-            </a>
-        </div>
+        <x-page-header :title="__('Create New Working Paper')" :backRoute="auth()->check() ? route('working-papers.index') : null"/>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <div class="p-6 bg-white overflow-hidden shadow-sm sm:rounded-lg">
+
+                <div class="mb-6 text-sm text-gray-500">
+                    Step 1 of 3 — Working Paper Setup
+                </div>
+
                 <form method="POST" action="{{ route('working-papers.store') }}" class="space-y-6">
                     @csrf
 
@@ -72,35 +65,14 @@
                         @enderror
                     </div>
 
-                    {{-- Job Reference and Period side by side --}}
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <label for="job_reference" class="block text-sm font-medium text-gray-700 mb-1">
-                                {{ __('Job Reference') }}
-                            </label>
-                            <input type="text" name="job_reference" id="job_reference"
-                                class="block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed"
-                                value="Auto-generated" disabled>
-                            <p class="mt-1 text-xs text-gray-500">This reference is auto-generated.</p>
-                        </div>
-
-                        <div>
-                            <label for="period" class="block text-sm font-medium text-gray-700 mb-1">
-                                {{ __('Accounting Period') }} ({{ __('Year') }})
-                            </label>
-                            <select name="period" id="period"
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                <option value="">-- Choose Year --</option>
-                                @foreach(range(date('Y'), 1990) as $year)
-                                    <option value="{{ $year }}" {{ old('period') == $year ? 'selected' : '' }}>
-                                        {{ $year }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('period')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+                    <div>
+                        <label for="job_reference" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ __('Job Reference') }}
+                        </label>
+                        <input type="text" name="job_reference" id="job_reference"
+                            class="block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                            value="Auto-generated" disabled>
+                        <p class="mt-1 text-xs text-gray-500">This reference is auto-generated.</p>
                     </div>
 
                     <div class="flex items-center justify-end mt-8 pt-6 border-t gap-4">

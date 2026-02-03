@@ -1,8 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">
-            Edit Working Paper
-        </h2>
+        <x-page-header :title="__('Edit Working Paper')" :backRoute="auth()->check() ? route('working-papers.index') : null" />
     </x-slot>
 
     <div class="py-12 max-w-4xl mx-auto">
